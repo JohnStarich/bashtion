@@ -57,30 +57,32 @@ function modules._load() {
 function modules._create_module_helper() {
     local module_name=$1
     local clobber=${clobber:-false}
-    if [[ "$clobber" != true ]] && type "$module_name" &>/dev/null; then
-        return
+    if [[ "$clobber" == true ]] || ! type "$module_name" &>/dev/null; then
+        eval '
+        function '"$module_name"'() {
+            modules._module_helper_stub "'"$module_name"'" "$@"
+        }
+        '
     fi
-    eval '
-    function '"$module_name"'() {
-        modules._module_helper_stub "'"$module_name"'" "$@"
-    }
-    '
+    if ! type "$module_name".usage &>/dev/null; then
+        eval '
+        function '"$module_name.usage"'() {
+            modules._module_helper_stub "'"$module_name"'" "$@"
+        }
+        '
+    fi
 }
 
 function modules._module_helper_stub() {
     local module_name=$1; shift
-    if type "$module_name".usage &>/dev/null; then
-        "$module_name".usage "$@"
+    local options
+    options=$(compgen -A function -X "$module_name._*" "$module_name.")
+    if [[ -z "$options" ]]; then
+        logger.error "No subcommands available for $module_name"
+        return 1
     else
-        local options
-        options=$(compgen -A function -X "$module_name._*" "$module_name.")
-        if [[ -z "$options" ]]; then
-            logger.error "No subcommands available for $module_name"
-            return 1
-        else
-            echo "Available options for $module_name:"
-            echo "$options"
-        fi
+        echo "Available options for $module_name:"
+        echo "$options"
     fi
 }
 
