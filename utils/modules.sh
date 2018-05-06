@@ -15,15 +15,16 @@ __import_cache=(
 
 alias import=modules.import
 function modules.import() {
-    local file=$1
+    local import_path=$1
     # Only import once
-    if [[ -n "${__import_cache[$file]+x}" ]]; then
+    if [[ -n "${__import_cache["$import_path"]:+x}" ]]; then
         return
     fi
-    if [[ "${file:0:1}" != / ]]; then
+    local file
+    if [[ "${import_path:0:1}" != / ]]; then
         for path in "${__import_path[@]}"; do
-            if [[ -e "$path/$file.sh" ]]; then
-                file=$path/$file
+            if [[ -e "$path/$import_path.sh" ]]; then
+                file=$path/$import_path
                 break
             fi
         done
@@ -32,10 +33,12 @@ function modules.import() {
         logger.error "Cannot import '$file.sh': File does not exist"
     fi
 
-    if ! modules._load "$file.sh" "$(basename "$file")"; then
+    __import_cache["$import_path"]=0
+    if ! modules._load "$file.sh" "$(basename "$import_path")"; then
         logger.error "Cannot import '$file.sh': Error occurred during source."
+        unset __import_cache['$'import_path]
     fi
-    __import_cache[$file]=1
+    __import_cache["$import_path"]=1
 }
 
 function modules._load() {
@@ -74,7 +77,7 @@ function modules._module_helper_stub() {
             logger.error "No subcommands available for $module_name"
             return 1
         else
-            logger.info "Available options for $module_name:"
+            echo "Available options for $module_name:"
             echo "$options"
         fi
     fi
