@@ -68,8 +68,8 @@ function modules._create_module_helper() {
 
 function modules._module_helper_stub() {
     local module_name=$1; shift
-    if type "$module_name".init &>/dev/null; then
-        "$module_name".init "$@"
+    if type "$module_name".usage &>/dev/null; then
+        "$module_name".usage "$@"
     else
         local options
         options=$(compgen -A function -X "$module_name._*" "$module_name.")
