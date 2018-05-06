@@ -26,6 +26,7 @@ __repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 # Immediately try and make our lives easier: include a simple logger and an importer.
 # shellcheck source=utils/logger.sh
 source "${__repo_root}"/utils/logger.sh
+logger.init
 # shellcheck source=utils/modules.sh
 source "${__repo_root}"/utils/modules.sh
 

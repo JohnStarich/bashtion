@@ -24,6 +24,11 @@ __level_colors=(
     [FATAL]=$'\033[1;31m'
 )
 
+function logger.init() {
+    LOG_LEVEL=${LOG_LEVEL:-all}
+    logger.set_level "$LOG_LEVEL"
+}
+
 function logger.add() {
     local level=${1^^}; shift
     local message=$*
@@ -75,4 +80,24 @@ function logger.error() {
 alias fatal=logger.fatal
 function logger.fatal() {
     logger.add fatal "$@"
+}
+
+function logger.set_level() {
+    if [[ $# != 1 ]]; then
+        logger._level_usage
+        return 2
+    fi
+    local level=${1^^}
+    if [[ -z "${__levels[$level]:+x}" ]]; then
+        debug oops
+        logger._level_usage
+        return 2
+    fi
+    __level=${__levels[$level]}
+}
+
+function logger._level_usage() {
+    local level_names=(all debug info warn error fatal off)
+    logger.error 'Usage: logger.set_level LEVEL'
+    logger.error "Level options: ${level_names[*]}"
 }
