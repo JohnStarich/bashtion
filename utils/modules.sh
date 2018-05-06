@@ -50,7 +50,7 @@ function modules._load() {
     fi
     # Allow arbitrary module imports.
     # shellcheck disable=SC1090
-    source "$file"
+    source "$file" || return $?
     modules._create_module_helper "$module_name"
 }
 
