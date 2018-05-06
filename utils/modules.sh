@@ -32,14 +32,57 @@ function modules.import() {
         logger.error "Cannot import '$file.sh': File does not exist"
     fi
 
-    # Allow arbitrary module imports.
-    # shellcheck disable=SC1090
-    if ! source "$file.sh"; then
+    if ! modules._load "$file.sh" "$(basename "$file")"; then
         logger.error "Cannot import '$file.sh': Error occurred during source."
     fi
     __import_cache[$file]=1
 }
 
+function modules._load() {
+    local file=$1
+    local module_name=$2
+    if [[ "$module_name" =~ ' ' ]]; then
+        logger.fatal "Cannot load module name with spaces: '$module_name'"
+        exit 2
+    fi
+    # Allow arbitrary module imports.
+    # shellcheck disable=SC1090
+    source "$file"
+    modules._create_module_helper "$module_name"
+}
+
+function modules._create_module_helper() {
+    local module_name=$1
+    if type "$module_name" &>/dev/null; then
+        return
+    fi
+    eval '
+    function '"$module_name"'() {
+        modules._module_helper_stub "'"$module_name"'" "$@"
+    }
+    '
+}
+
+function modules._module_helper_stub() {
+    local module_name=$1; shift
+    if type "$module_name".init &>/dev/null; then
+        "$module_name".init "$@"
+    else
+        local options
+        options=$(compgen -A function -X "$module_name._*" "$module_name.")
+        if [[ -z "$options" ]]; then
+            logger.error "No subcommands available for $module_name"
+            return 1
+        else
+            logger.info "Available options for $module_name:"
+            echo "$options"
+        fi
+    fi
+}
+
 function modules.register_import_path() {
     __import_path+=("$@")
 }
+
+modules._create_module_helper logger
+modules._create_module_helper modules
