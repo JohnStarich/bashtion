@@ -2,7 +2,7 @@
 # Import is an easy way to include other modules.
 
 # Set up an import load path
-__import_path=(
+__import_paths=(
     "$__repo_root"
 )
 
@@ -20,9 +20,9 @@ function modules.import() {
     if [[ -n "${__import_cache["$import_path"]:+x}" ]]; then
         return
     fi
-    local file
+    local file="$import_path"
     if [[ "${import_path:0:1}" != / ]]; then
-        for path in "${__import_path[@]}"; do
+        for path in "${__import_paths[@]}"; do
             if [[ -e "$path/$import_path.sh" ]]; then
                 file=$path/$import_path
                 break
@@ -34,7 +34,7 @@ function modules.import() {
     fi
 
     __import_cache["$import_path"]=0
-    if ! modules._load "$file.sh" "$(basename "$import_path")"; then
+    if ! modules._load "$file.sh" "${import_path##*/}"; then
         logger.error "Cannot import '$file.sh': Error occurred during source."
         unset __import_cache['$'import_path]
     fi
@@ -84,7 +84,7 @@ function modules._module_helper_stub() {
 }
 
 function modules.register_import_path() {
-    __import_path+=("$@")
+    __import_paths+=("$@")
 }
 
 modules._create_module_helper logger
