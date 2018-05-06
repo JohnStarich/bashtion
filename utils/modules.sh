@@ -56,7 +56,8 @@ function modules._load() {
 
 function modules._create_module_helper() {
     local module_name=$1
-    if type "$module_name" &>/dev/null; then
+    local clobber=${clobber:-false}
+    if [[ "$clobber" != true ]] && type "$module_name" &>/dev/null; then
         return
     fi
     eval '
@@ -87,5 +88,5 @@ function modules.register_import_path() {
     __import_paths+=("$@")
 }
 
-modules._create_module_helper logger
-modules._create_module_helper modules
+clobber=true modules._create_module_helper logger
+clobber=true modules._create_module_helper modules
