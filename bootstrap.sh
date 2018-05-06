@@ -8,6 +8,11 @@ set -e
 # shellcheck disable=SC2015,SC2128
 [ -n "$BASH_VERSINFO" ] && [ "${BASH_VERSINFO[0]}" -lt 4 ] && echo "This library requires Bash 4 or higher" && exit 1 || true
 
+if [[ "$BOOTSTRAPPED" == true ]]; then
+    logger.warn 'Already bootstrapped. Skipping...'
+    return 0
+fi
+
 # Fail a pipe command if any of the commands fail
 set -o pipefail
 # Error if a variable is used before being set.
@@ -24,5 +29,5 @@ source "${__repo_root}"/utils/logger.sh
 # shellcheck source=utils/modules.sh
 source "${__repo_root}"/utils/modules.sh
 
+BOOTSTRAPPED=true
 logger.debug 'Bootstrap complete.'
-eval "$*"
