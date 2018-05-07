@@ -55,6 +55,9 @@ function logger.add() {
         printf '[%5s] ' "$level"
     fi
     printf '%s\n' "$message"
+    if [[ -t 1 ]]; then
+        printf '%s' "$reset_color"
+    fi
 }
 
 alias debug=logger.debug
