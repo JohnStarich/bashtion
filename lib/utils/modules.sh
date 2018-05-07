@@ -3,7 +3,7 @@
 
 # Set up an import load path
 __import_paths=(
-    "$__repo_root"
+    "$__repo_root/lib"
 )
 
 declare -A __import_cache

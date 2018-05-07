@@ -24,11 +24,11 @@ shopt -s expand_aliases
 __repo_root=$(cd "${BASH_SOURCE[0]%/*}" && pwd -P)
 
 # Immediately try and make our lives easier: include a simple logger and an importer.
-# shellcheck source=utils/logger.sh
-source "${__repo_root}"/utils/logger.sh
+# shellcheck source=lib/utils/logger.sh
+source "${__repo_root}"/lib/utils/logger.sh
 logger.init
-# shellcheck source=utils/modules.sh
-source "${__repo_root}"/utils/modules.sh
+# shellcheck source=lib/utils/modules.sh
+source "${__repo_root}"/lib/utils/modules.sh
 
 BOOTSTRAPPED=true
 logger.debug 'Bootstrap complete.'
