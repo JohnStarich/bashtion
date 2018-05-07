@@ -2,39 +2,42 @@
 # Logger enables more advanced message handling, including colorization and
 # log levels.
 
-declare -A __levels
-__levels=(
+declare -Ar __levels=(
     [ALL]=0
-    [DEBUG]=1
-    [INFO]=2
-    [WARN]=3
-    [ERROR]=4
-    [FATAL]=5
-    [OFF]=6
+    [TRACE]=1
+    [DEBUG]=2
+    [INFO]=3
+    [WARN]=4
+    [ERROR]=5
+    [FATAL]=6
+    [OFF]=7
 )
+declare -r __max_level=${__levels[OFF]}
 
 __level=${__levels[ALL]}
 
-declare -A __level_colors
-__level_colors=(
-    [default]=$'\033[0m'
-    [DEBUG]=$'\033[0;32m'
-    [WARN]=$'\033[1;33m'
-    [ERROR]=$'\033[0;31m'
-    [FATAL]=$'\033[1;31m'
+declare -Ar __level_colors=(
+    [default]=$'\e[0m'
+    [TRACE]=$'\e[0;35m'
+    [DEBUG]=$'\e[0;32m'
+    [WARN]=$'\e[1;33m'
+    [ERROR]=$'\e[0;31m'
+    [FATAL]=$'\e[1;31m'
 )
 
 function logger.init() {
-    LOG_LEVEL=${LOG_LEVEL:-all}
+    LOG_LEVEL=${LOG_LEVEL:-debug}
     logger.set_level "$LOG_LEVEL"
 }
 
 function logger.add() {
     local level=${1^^}; shift
+    # Return as early as possible to reduce overhead
+    [[ "${__levels["$level"]:-$__max_level}" < ${__level} ]] && return
     local message=$*
     local level_num
     case "$level" in
-        DEBUG|INFO|WARN|ERROR|FATAL)
+        TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
             level_num=${__levels[$level]}
             ;;
         *)
@@ -58,6 +61,11 @@ function logger.add() {
     if [[ -t 1 ]]; then
         printf '%s' "$reset_color"
     fi
+}
+
+alias trace=logger.trace
+function logger.trace() {
+    logger.add trace "$@"
 }
 
 alias debug=logger.debug
