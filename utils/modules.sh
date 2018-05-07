@@ -81,8 +81,8 @@ function modules._module_helper_stub() {
         logger.error "No subcommands available for $module_name"
         return 1
     else
-        echo "Available options for $module_name:"
-        echo "$options"
+        printf 'Available options for %s:\n' "$module_name"
+        printf '%s\n' "$options"
     fi
 }
 
