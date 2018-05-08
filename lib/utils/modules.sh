@@ -2,11 +2,11 @@
 # Import is an easy way to include other modules.
 
 # Set up an import load path
-__import_paths=(
+declare -ag __import_paths=(
     "$__repo_root/lib"
 )
 
-declare -A __import_cache=(
+declare -Ag __import_cache=(
     # Only include bootstrapped items in initial cache
     [utils/logger]=1
     [utils/import]=1

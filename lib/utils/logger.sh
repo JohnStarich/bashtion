@@ -2,7 +2,7 @@
 # Logger enables more advanced message handling, including colorization and
 # log levels.
 
-declare -Ar __levels=(
+declare -Arg __levels=(
     [ALL]=0
     [TRACE]=1
     [DEBUG]=2
@@ -12,11 +12,11 @@ declare -Ar __levels=(
     [FATAL]=6
     [OFF]=7
 )
-declare -r __max_level=${__levels[OFF]}
+declare -rg __max_level=${__levels[OFF]}
 
-__level=${__levels[ALL]}
+declare -g __level=${__levels[ALL]}
 
-declare -Ar __level_colors=(
+declare -Arg __level_colors=(
     [default]=$'\e[0m'
     [TRACE]=$'\e[0;35m'
     [DEBUG]=$'\e[0;32m'
