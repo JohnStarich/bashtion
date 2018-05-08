@@ -6,8 +6,7 @@ __import_paths=(
     "$__repo_root/lib"
 )
 
-declare -A __import_cache
-__import_cache=(
+declare -A __import_cache=(
     # Only include bootstrapped items in initial cache
     [utils/logger]=1
     [utils/import]=1
@@ -18,6 +17,7 @@ function modules.import() {
     local import_path=$1
     # Only import once
     if [[ -n "${__import_cache["$import_path"]:+x}" ]]; then
+        logger.trace "skipping cached import '$import_path'"
         return
     fi
     local file="$import_path"
@@ -34,11 +34,16 @@ function modules.import() {
     fi
 
     __import_cache["$import_path"]=0
-    if ! modules._load "$file.sh" "${import_path##*/}"; then
+    logger.trace "importing '$import_path'..."
+    local rc=0
+    modules._load "$file.sh" "${import_path##*/}" || rc=$?
+    if [[ $rc != 0 ]]; then
         logger.error "Cannot import '$file.sh': Error occurred during source."
-        unset __import_cache['$'import_path]
+        unset __import_cache["$import_path"]
+        return $rc
     fi
     __import_cache["$import_path"]=1
+    logger.trace "done importing '$import_path'!"
 }
 
 function modules._load() {
@@ -54,17 +59,33 @@ function modules._load() {
     modules._create_module_helper "$module_name"
 }
 
+function modules.identifier_is_available() {
+    if [[ $# == 0 ]]; then
+        logger.error 'Usage: modules.identifier_is_available NAME'
+        return 2
+    fi
+    local name=$1
+    type "$name" &>/dev/null && \
+        logger.trace "Identifier is already a type: $name" && \
+        return 1
+    declare -p "$name" &>/dev/null && \
+        logger.trace "Identifier is already a var: $name" && \
+        return 1
+}
+
 function modules._create_module_helper() {
     local module_name=$1
     local clobber=${clobber:-false}
-    if [[ "$clobber" == true ]] || ! type "$module_name" &>/dev/null; then
+    if [[ "$clobber" == true ]] || modules.identifier_is_available "$module_name"; then
+        logger.trace "Creating module helper: '$module_name'"
         eval '
         function '"$module_name"'() {
             modules._module_helper_stub "'"$module_name"'" "$@"
         }
         '
     fi
-    if ! type "$module_name".usage &>/dev/null; then
+    if modules.identifier_is_available "$module_name".usage; then
+        logger.trace "Creating module helper: '$module_name.usage'"
         eval '
         function '"$module_name.usage"'() {
             modules._module_helper_stub "'"$module_name"'" "$@"
