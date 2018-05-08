@@ -7,9 +7,9 @@ function retrier.retry() {
         return 2
     fi
     local retry_count=$1
-    if [[ "$retry_count" =~ ^[0-9]+$ ]]; then
-        if (( retry_count == 0 )); then
-            logger.error 'Cannot use retry with count of 0'
+    if [[ "$retry_count" =~ ^-?[0-9]+$ ]]; then
+        if (( retry_count < 1 )); then
+            logger.error 'Cannot use retry with count less than 1'
             retrier.usage
             return 2
         fi
@@ -17,19 +17,24 @@ function retrier.retry() {
     else
         retry_count=3
     fi
+    # Mark read-only to prevent retried line from changing it
+    declare -r retry_count
 
     if [[ $# == 0 ]]; then
         retrier.usage
         return 2
     fi
 
+    local rc
     for (( trial = 1; trial == 1 || trial <= retry_count + 1; trial += 1 )); do
-        rc=0
-        "$@" || rc=$?
-        if (( rc == 0 )); then
-            break
-        elif (( trial != retry_count + 1 )); then
-            logger.info "Trial $trial exited [$rc]. Retrying... $*"
+        if "$@"; then
+            return 0
+        else
+            rc=$?
+            logger.info "Trial $trial exited [$rc]."
+            if (( trial != retry_count + 1 )); then
+                 logger.info "Retrying... $*"
+            fi
         fi
     done
     return $rc
