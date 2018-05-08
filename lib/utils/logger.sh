@@ -104,7 +104,6 @@ function logger.set_level() {
     fi
     local level=${1^^}
     if [[ -z "${__levels["$level"]:+x}" ]]; then
-        debug oops
         logger._level_usage
         return 2
     fi
