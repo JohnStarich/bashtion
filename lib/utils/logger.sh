@@ -38,7 +38,7 @@ function logger.add() {
     local level_num
     case "$level" in
         TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
-            level_num=${__levels[$level]}
+            level_num=${__levels["$level"]}
             ;;
         *)
             logger.fatal "Invalid log level: $level"
@@ -52,7 +52,7 @@ function logger.add() {
     # Colorize if stdout is a tty
     if [[ -t 1 ]]; then
         local reset_color=${__level_colors[default]}
-        local level_color=${__level_colors[$level]:-$reset_color}
+        local level_color=${__level_colors["$level"]:-$reset_color}
         printf '%s[%s%5s%s] ' "$reset_color" "$level_color" "$level" "$reset_color"
     else
         printf '[%5s] ' "$level"
@@ -99,12 +99,12 @@ function logger.set_level() {
         return 2
     fi
     local level=${1^^}
-    if [[ -z "${__levels[$level]:+x}" ]]; then
+    if [[ -z "${__levels["$level"]:+x}" ]]; then
         debug oops
         logger._level_usage
         return 2
     fi
-    __level=${__levels[$level]}
+    __level=${__levels["$level"]}
 }
 
 function logger._level_usage() {
