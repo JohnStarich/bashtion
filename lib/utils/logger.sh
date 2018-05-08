@@ -93,6 +93,10 @@ function logger.fatal() {
     logger.add fatal "$@"
 }
 
+function logger.level() {
+    printf '%s\n' "${__level}"
+}
+
 function logger.set_level() {
     if [[ $# != 1 ]]; then
         logger._level_usage
