@@ -31,9 +31,9 @@ function logger.init() {
 }
 
 function logger.add() {
+    # Return as early as possible to reduce overhead (and verbosity, if `set -x` is on)
+    [[ "${__levels["${1^^}"]:-$__max_level}" < ${__level} ]] && return
     local level=${1^^}; shift
-    # Return as early as possible to reduce overhead
-    [[ "${__levels["$level"]:-$__max_level}" < ${__level} ]] && return
     local message=$*
     local level_num
     case "$level" in
