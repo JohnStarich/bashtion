@@ -3,7 +3,7 @@
 
 # Set up an import load path
 declare -ag __import_paths=(
-    "$__repo_root/lib"
+    "$__bashtion_root/lib"
 )
 
 declare -Ag __import_cache=(

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap the library for use of standard functionality.
+# Bootstrap Bashtion
 
 # Prevent shellcheck rules from being global
 true
@@ -8,7 +8,7 @@ true
 # shellcheck disable=SC2015,SC2128
 [ -n "$BASH_VERSINFO" ] && [ "${BASH_VERSINFO[0]}" -lt 4 ] && echo "This library requires Bash 4 or higher" && exit 1 || true
 
-if [[ "${BOOTSTRAPPED:-}" == true ]]; then
+if [[ "${BASHTION_BOOTSTRAPPED:-}" == true ]]; then
     logger.warn 'Already bootstrapped. Skipping...'
     return 0
 fi
@@ -29,23 +29,23 @@ if [[ "${UNSAFE:-}" != thisisnotproduction ]]; then
 fi
 
 # Get absolute path to the repository root
-__repo_root=${BASH_SOURCE[0]%/*}
-if [[ "${__repo_root}" == "${BASH_SOURCE[0]}" ]]; then
+__bashtion_root=${BASH_SOURCE[0]%/*}
+if [[ "${__bashtion_root}" == "${BASH_SOURCE[0]}" ]]; then
     # Presumably sourcing from the same directory
-    __repo_root=$(pwd -P)
-elif [[ ! -d "${__repo_root}" ]]; then
-    echo 'Failed to find bootstrap source directory.'
+    __bashtion_root=$(pwd -P)
+elif [[ ! -d "${__bashtion_root}" ]]; then
+    echo 'Failed to find Bashtion source directory.'
     return 1
 else
-    __repo_root=$(cd "${BASH_SOURCE[0]%/*}" && pwd -P)
+    __bashtion_root=$(cd "${BASH_SOURCE[0]%/*}" && pwd -P)
 fi
 
 # Immediately try and make our lives easier: include a simple logger and an importer.
 # shellcheck source=lib/utils/logger.sh
-source "${__repo_root}"/lib/utils/logger.sh
+source "${__bashtion_root}"/lib/utils/logger.sh
 logger.init
 # shellcheck source=lib/utils/modules.sh
-source "${__repo_root}"/lib/utils/modules.sh
+source "${__bashtion_root}"/lib/utils/modules.sh
 
-BOOTSTRAPPED=true
-logger.debug 'Bootstrap complete.'
+BASHTION_BOOTSTRAPPED=true
+logger.debug 'Fortification complete.'
