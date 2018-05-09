@@ -14,31 +14,38 @@ declare -Ag __import_cache=(
 
 alias import=modules.import
 function modules.import() {
-    local import_path=$1
+    local import_path=${1%.sh}
     # Only import once
     if [[ -n "${__import_cache["$import_path"]:+x}" ]]; then
         logger.trace "skipping cached import '$import_path'"
         return
     fi
-    local file="$import_path"
-    if [[ "${import_path:0:1}" != / ]]; then
+    local file=''
+    if [[ -e "$import_path.sh" ]]; then
+        file="$import_path.sh"
+    elif [[ -e "$import_path" ]]; then
+        file="$import_path"
+    else
         for path in "${__import_paths[@]}"; do
             if [[ -e "$path/$import_path.sh" ]]; then
-                file=$path/$import_path
+                file=$path/$import_path.sh
                 break
+            elif [[ -e "$path/$import_path" ]]; then
+                file=$path/$import_path
             fi
         done
-    fi
-    if [[ ! -e "$file.sh" ]]; then
-        logger.error "Cannot import '$file.sh': File does not exist"
+        if [[ ! -e "$file" ]]; then
+            logger.error "Cannot import '$import_path': File does not exist"
+            return 1
+        fi
     fi
 
     __import_cache["$import_path"]=0
     logger.trace "importing '$import_path'..."
     local rc=0
-    modules._load "$file.sh" "${import_path##*/}" || rc=$?
+    modules._load "$file" "${import_path##*/}" || rc=$?
     if [[ $rc != 0 ]]; then
-        logger.error "Cannot import '$file.sh': Error occurred during source."
+        logger.error "Cannot import '$file': Error occurred during source."
         unset __import_cache["$import_path"]
         return $rc
     fi
@@ -71,6 +78,7 @@ function modules.identifier_is_available() {
     declare -p "$name" &>/dev/null && \
         logger.trace "Identifier is already a var: $name" && \
         return 1
+    return 0
 }
 
 function modules._create_module_helper() {
