@@ -31,8 +31,6 @@ logger.info 'Hello world!'
 
 After sourcing the `bootstrap.sh` script, you're good to go! Both `utils/logger` and `utils/modules` are imported by default so you can get to the good stuff right away.
 
-If you want to find out which commands are available, the easiest way is to run the function with the same name as the module. For example, run `logger` and it will print out all available logger commands like `logger.info` and `logger.error`.
-
 ## Writing your own modules
 
 You can create your very own reusable modules!
@@ -93,3 +91,10 @@ assert.stats
 # [ INFO] 4/4 (100%) tests passed. 0 tests failed.
 # [ INFO] All tests passed.
 ```
+
+## How do I poke around this library?
+
+Every module has its own file inside of [lib](lib/) or its subdirectories. If you see a module you want in there, just import it using its relative path from `lib`. The retrier is located in `./lib/utils/retrier.sh` so you would run `import utils/retrier`.
+
+If you want to find out which commands are available for a module, the easiest way is to run the function with that module's name.
+For example, run `logger` and it will print out all available logger commands like `logger.info` and `logger.error`.
