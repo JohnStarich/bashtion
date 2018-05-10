@@ -1,0 +1,30 @@
+language: bash
+
+# Use container-based infrastructure for quicker build start-up
+sudo: false
+
+script:
+- bash -c 'shopt -s globstar nullglob; shellcheck **/*.{sh,bash}'
+
+before_deploy:
+- "./build-standalone.sh"
+- bash -c 'source try-bashtion.sh'
+
+deploy:
+  - provider: releases
+    api_key:
+      secure: bSV5QunTgE9rnpYYNyJIkp+3ql+4LIqTP6Z8+Jg+RgH6hin09f2wuSvYP7HKEjOQb5WIk85AvQnu8sgogdXidFznY0CSbiI66S8dwMNii1l9fQZIoMVAldWKUsu7FxmoMT7Mvm9+HdtVAzh5g0Bken+lQsPxVGqtuWB1jBtrecMG87JnXJRmVHhESWQi9jrQHLF+CBf7wk7BRdbgs8QgY4cxFj/kUxNCuhyd+HZN5DdEXjKj0x3UnEwY+rN/I0G2vEAHhZrwc89MESqm05lahAyxDxO4P4BFJumxSJx8ydUVjM3pBHvCXWHhrI95kV/8RWJu6Tj8g7KRQuDijfVzL08S5gVJOC2AwsWecx1M5/g0SDo4MwkCpJ7NnLjQkgMrDO4TVCG5tBR1K2WDDCm9JzLgIPKpSQXQaVNNkOR1vaKBfcKqZnJVGfwveRICJY/srA9AUvFQmCwOIo/IqFkUwIHtJg1unt4ykU+MxVwB/q75Y0BcLof7bGzsobneaZOE//I1dVzRy3wZK/Mle6Accrg7HysXWhTxr0KSUM3ergC0hGhitvy6d7bnEiDMdPFYJnha9Bhpf38kS7gnnDqMjn8LUfWFpfMvkLEyEyZ6ocrS2Czuokfh7oqgT5GtuCrw8SAkng2c8I0g8gcRZviKQntAlsuxFaDogz/I2cjQcWE=
+    skip_cleanup: true
+    file: try-bashtion.sh
+    on:
+      repo: JohnStarich/bashtion
+      tags: true
+  - provider: releases
+    api_key:
+      secure: bSV5QunTgE9rnpYYNyJIkp+3ql+4LIqTP6Z8+Jg+RgH6hin09f2wuSvYP7HKEjOQb5WIk85AvQnu8sgogdXidFznY0CSbiI66S8dwMNii1l9fQZIoMVAldWKUsu7FxmoMT7Mvm9+HdtVAzh5g0Bken+lQsPxVGqtuWB1jBtrecMG87JnXJRmVHhESWQi9jrQHLF+CBf7wk7BRdbgs8QgY4cxFj/kUxNCuhyd+HZN5DdEXjKj0x3UnEwY+rN/I0G2vEAHhZrwc89MESqm05lahAyxDxO4P4BFJumxSJx8ydUVjM3pBHvCXWHhrI95kV/8RWJu6Tj8g7KRQuDijfVzL08S5gVJOC2AwsWecx1M5/g0SDo4MwkCpJ7NnLjQkgMrDO4TVCG5tBR1K2WDDCm9JzLgIPKpSQXQaVNNkOR1vaKBfcKqZnJVGfwveRICJY/srA9AUvFQmCwOIo/IqFkUwIHtJg1unt4ykU+MxVwB/q75Y0BcLof7bGzsobneaZOE//I1dVzRy3wZK/Mle6Accrg7HysXWhTxr0KSUM3ergC0hGhitvy6d7bnEiDMdPFYJnha9Bhpf38kS7gnnDqMjn8LUfWFpfMvkLEyEyZ6ocrS2Czuokfh7oqgT5GtuCrw8SAkng2c8I0g8gcRZviKQntAlsuxFaDogz/I2cjQcWE=
+    skip_cleanup: true
+    file: try-bashtion.sh
+    prerelease: true
+    on:
+      repo: JohnStarich/bashtion
+      branch: master
