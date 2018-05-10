@@ -46,6 +46,8 @@ source "${__bashtion_root}"/lib/utils/logger.sh
 logger.init
 # shellcheck source=lib/utils/modules.sh
 source "${__bashtion_root}"/lib/utils/modules.sh
+modules.init
+modules.register_import_path "$__bashtion_root/lib"
 
 BASHTION_BOOTSTRAPPED=true
 logger.debug 'Fortification complete.'

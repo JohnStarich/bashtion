@@ -7,8 +7,8 @@ set -u
 
 ## Bootstrap framework
 LOG_LEVEL=${LOG_LEVEL:-all}
-# shellcheck source=bootstrap.sh
-source "${BASH_SOURCE[0]%/*}/bootstrap.sh"
+# shellcheck source=bashtion.sh
+source "${BASH_SOURCE[0]%/*}/bashtion.sh"
 
 import test/assert
 

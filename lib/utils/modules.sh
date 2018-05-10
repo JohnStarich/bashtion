@@ -2,9 +2,7 @@
 # Import is an easy way to include other modules.
 
 # Set up an import load path
-declare -ag __import_paths=(
-    "$__bashtion_root/lib"
-)
+declare -ag __import_paths=()
 
 declare -Ag __import_cache=(
     # Only include bootstrapped items in initial cache
@@ -40,7 +38,7 @@ function modules.import() {
         fi
     fi
 
-    __import_cache["$import_path"]=0
+    modules._cache_import "$import_path" 0
     logger.trace "importing '$import_path'..."
     local rc=0
     modules._load "$file" "${import_path##*/}" || rc=$?
@@ -49,8 +47,14 @@ function modules.import() {
         unset __import_cache["$import_path"]
         return $rc
     fi
-    __import_cache["$import_path"]=1
+    modules._cache_import "$import_path" 1
     logger.trace "done importing '$import_path'!"
+}
+
+function modules._cache_import() {
+    local import_path=$1
+    local import_status=${2:-1}
+    __import_cache["$import_path"]=$import_status
 }
 
 function modules._load() {
@@ -119,5 +123,7 @@ function modules.register_import_path() {
     __import_paths+=("$@")
 }
 
-clobber=true modules._create_module_helper logger
-clobber=true modules._create_module_helper modules
+function modules.init() {
+    clobber=true modules._create_module_helper logger
+    clobber=true modules._create_module_helper modules
+}

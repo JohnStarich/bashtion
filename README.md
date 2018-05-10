@@ -16,20 +16,20 @@ This framework is still under development, so if you have any suggestions, feel 
 
 ## Getting Started
 
-To use Bashtion, simply source `bootstrap.sh` in the root of this repository. You must be using at least Bash 4.
+To use Bashtion, simply source `bashtion.sh` in the root of this repository. You must be using at least Bash 4.
 
 Include this in a script or use it in your `~/.bash_profile`. Here's an example start script:
 
 ```bash
 #!/usr/bin/env bash
-source "$WORKSPACE/bashtion/bootstrap.sh"
+source "$WORKSPACE/bashtion/bashtion.sh"
 
 import utils/logger
 
 logger.info 'Hello world!'
 ```
 
-After sourcing the `bootstrap.sh` script, you're good to go! Both `utils/logger` and `utils/modules` are imported by default so you can get to the good stuff right away.
+After sourcing the `bashtion.sh` script, you're good to go! Both `utils/logger` and `utils/modules` are imported by default so you can get to the good stuff right away.
 
 ## Writing your own modules
 
@@ -54,7 +54,7 @@ This start script registers `./modules` and calls our internet status checker:
 ```bash
 #!/usr/bin/env bash
 # Run Bashtion's startup script
-source "$WORKSPACE/bashtion/bootstrap.sh"
+source "$WORKSPACE/bashtion/bashtion.sh"
 # Register your module
 modules.register_import_path "$PWD/modules"
 
