@@ -5,6 +5,7 @@ sudo: false
 
 script:
 - bash -c 'shopt -s globstar nullglob; shellcheck **/*.{sh,bash}'
+- ./test.sh
 
 before_deploy:
 - "./build-standalone.sh"
