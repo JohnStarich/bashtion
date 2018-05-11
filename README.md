@@ -14,6 +14,16 @@ Build reusable Bash modules painlessly. Bashtion makes it easy to modularize exi
 Bashtion is geared toward use in production environments where code reuse and finding bugs becomes critical for success.
 This framework is still under development, so if you have any suggestions, feel free to [make an issue](https://github.com/JohnStarich/bashtion/issues/new)!
 
+## Try it
+
+Run the following command in your shell to try it out.
+
+```bash
+source <(curl -fsSL -H 'Accept: Accept: application/vnd.github.v3+json' https://api.github.com/repos/JohnStarich/bashtion/releases/latest | grep browser_download_url | cut -d '"' -f 4 | xargs curl -fsSL)
+```
+
+The above script checks for the latest stable release and then sources it. Please note that try-bashtion.sh is not recommended for production builds.
+
 ## Getting Started
 
 To use Bashtion, simply source `bashtion.sh` in the root of this repository. You must be using at least Bash 4.
