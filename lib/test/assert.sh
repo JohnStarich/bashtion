@@ -91,7 +91,12 @@ function assert.not_equal() {
 
 function assert._progress_line() {
     local total=$((__successes + __failures + __exceptions))
-    local success_rate=$((100 * __successes / total))
+    local success_rate
+    if [[ "$total" == 0 ]]; then
+        success_rate=100
+    else
+        success_rate=$((100 * __successes / total))
+    fi
     local color=''
     if [[ -t 1 ]]; then
         if [[ "$success_rate" == 100 ]]; then
