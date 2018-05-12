@@ -43,8 +43,11 @@ for test in tests/**/*.sh; do
         } &
         {
             # shellcheck disable=SC1090
-            source "$test" &>"$output_pipe"
-            echo $? >"$rc_pipe"
+            if source "$test" &>"$output_pipe"; then
+                echo 0 >"$rc_pipe"
+            else
+                echo $? >"$rc_pipe"
+            fi
         }
         wait
     else
