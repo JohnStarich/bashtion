@@ -10,6 +10,7 @@ LOG_LEVEL=${LOG_LEVEL:-all}
 # shellcheck source=bashtion.sh
 source "${BASH_SOURCE[0]%/*}/bashtion.sh"
 
+import test/test
 import test/assert
 
 
@@ -31,6 +32,7 @@ fi
 
 for test in tests/**/*.sh; do
     reset_flags
+    test.init "$test"
     if [[ -n "$test_space" ]]; then
         {
             output=$(<"$output_pipe")
@@ -42,12 +44,13 @@ for test in tests/**/*.sh; do
             fi
         } &
         {
+            declare rc=0
             # shellcheck disable=SC1090
-            if source "$test" &>"$output_pipe"; then
-                echo 0 >"$rc_pipe"
-            else
-                echo $? >"$rc_pipe"
+            source "$test" >"$output_pipe" || rc=$?
+            if test.failed; then
+                rc=1
             fi
+            echo "$rc" >"$rc_pipe"
         }
         wait
     else
@@ -61,4 +64,5 @@ if [[ -n "$test_space" ]]; then
 fi
 
 reset_flags
-assert.stats
+#assert.stats
+test.stats
