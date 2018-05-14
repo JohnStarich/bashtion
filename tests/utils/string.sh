@@ -41,3 +41,14 @@ assert.false string.nth_token 2 hi there
 
 assert.equal 'hi' "$(IFS=: string.nth_token 0 "hi:there folks")"
 assert.equal 'there folks' "$(IFS=: string.nth_token 1 "hi:there folks")"
+
+
+assert.equal 'hi' "$(string.filter 'hi' $'hi\nthere\nbob')"
+assert.equal 'there' "$(string.filter 'there' $'hi\nthere\nbob')"
+assert.equal $'ok\nokay' "$(string.filter 'ok' $'ok\nokay\nalright then')"
+assert.equal $'ok\nokay' "$(echo $'ok\nokay\nalright then' | string.filter 'ok')"
+
+
+assert.equal $'ok\nalright' "$(string.filter_not 'okay' $'ok\nokay\nalright')"
+assert.equal 'alright' "$(string.filter_not 'ok' $'ok\nokay\nalright')"
+assert.equal 'alright then' "$(echo $'ok\nokay\nalright then' | string.filter_not 'ok')"

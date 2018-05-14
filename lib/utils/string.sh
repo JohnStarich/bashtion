@@ -43,3 +43,33 @@ function string.nth_token() {
     fi
     printf '%s\n' "${tokens[token_index]}"
 }
+
+function string.filter() {
+    local pattern=$1; shift
+    {
+        if [[ $# != 0 ]]; then
+            exec <<<"$*"
+        fi
+        local line
+        while read -r line; do
+            if [[ "$line" =~ $pattern ]]; then
+                printf '%s\n' "$line"
+            fi
+        done
+    }
+}
+
+function string.filter_not() {
+    local pattern=$1; shift
+    {
+        if [[ $# != 0 ]]; then
+            exec <<<"$*"
+        fi
+        local line
+        while read -r line; do
+            if [[ ! "$line" =~ $pattern ]]; then
+                printf '%s\n' "$line"
+            fi
+        done
+    }
+}
