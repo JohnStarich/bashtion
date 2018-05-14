@@ -31,3 +31,15 @@ function string.pad() {
     declare -i pad_size=$1
     printf "%${pad_size}s" ''
 }
+
+function string.nth_token() {
+    declare -i token_index=$1; shift
+    # Intentionally not quoting to make use of splits based on IFS
+    # shellcheck disable=SC2206
+    declare -a tokens=($*)
+    if ((token_index < -${#tokens} || token_index >= ${#tokens})); then
+        logger.error "Index out of bounds: (${tokens[*]}) at index $token_index"
+        return 2
+    fi
+    printf '%s\n' "${tokens[token_index]}"
+}

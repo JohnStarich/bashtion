@@ -26,3 +26,18 @@ assert.equal '/root' "$(string.dirname '/root/path///')"
 assert.equal '/' "$(string.dirname '///path')"
 assert.equal '/' "$(string.dirname '///')"
 assert.equal '.' "$(string.dirname '')"
+
+
+assert.equal '  ' "$(string.pad 2)"
+assert.equal '' "$(string.pad 0)"
+
+
+assert.equal 'hi' "$(string.nth_token 0 hi there)"
+assert.equal 'there' "$(string.nth_token 1 hi there)"
+assert.equal 'there' "$(string.nth_token -1 hi there)"
+assert.equal 'hi' "$(string.nth_token -2 hi there)"
+assert.false string.nth_token -3 hi there
+assert.false string.nth_token 2 hi there
+
+assert.equal 'hi' "$(IFS=: string.nth_token 0 "hi:there folks")"
+assert.equal 'there folks' "$(IFS=: string.nth_token 1 "hi:there folks")"
