@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2154
 
+import test/test
 import utils/colors
+import utils/exception
+import utils/string
 
-declare -ig __exceptions=0
-declare -ig __failures=0
-declare -ig __successes=0
 
 alias assert=assert.true
 function assert.true() {
     if [[ $# == 0 ]]; then
         logger.fatal "Usage: assert.true COMMAND [ARGS ...]"
-        assert._log_trace
-        __exceptions+=1
+        exception.trace
+        test.abort
         return 2
     fi
     local rc=0
@@ -20,19 +20,19 @@ function assert.true() {
     if [[ $rc != 0 ]]; then
         assert._log_failure "Return code is non-zero ($rc)"
         logger.error "$*"
-        assert._log_trace
-        __failures+=1
+        exception.trace
+        test.fail
         return 1
     else
-        __successes+=1
+        test.success
     fi
 }
 
 function assert.false() {
     if [[ $# == 0 ]]; then
         logger.fatal "Usage: assert.false COMMAND [ARGS ...]"
-        assert._log_trace
-        __exceptions+=1
+        exception.trace
+        test.abort
         return 2
     fi
     local rc=0
@@ -40,19 +40,19 @@ function assert.false() {
     if [[ $rc == 0 ]]; then
         assert._log_failure "Return code is zero"
         logger.error "$*"
-        assert._log_trace
-        __failures+=1
+        exception.trace
+        test.fail
         return 1
     else
-        __successes+=1
+        test.success
     fi
 }
 
 function assert.equal() {
     if [[ $# != 2 ]]; then
         logger.fatal "Usage: assert.equal EXPECTED ACTUAL"
-        assert._log_trace
-        __exceptions+=1
+        exception.trace
+        test.abort
         return 2
     fi
     local expected=$1
@@ -61,19 +61,19 @@ function assert.equal() {
         assert._log_failure "$actual is not equal to $expected"
         logger.error "Expected: $expected"
         logger.error "Actual:   $actual"
-        assert._log_trace
-        __failures+=1
+        exception.trace
+        test.fail
         return 1
     else
-        __successes+=1
+        test.success
     fi
 }
 
 function assert.not_equal() {
     if [[ $# != 2 ]]; then
         logger.fatal "Usage: assert.equal UNEXPECTED ACTUAL"
-        assert._log_trace
-        __exceptions+=1
+        exception.trace
+        test.abort
         return 2
     fi
     local unexpected=$1
@@ -81,11 +81,11 @@ function assert.not_equal() {
     if [[ "$unexpected" == "$actual" ]]; then
         assert._log_failure "$actual is equal to $unexpected"
         logger.error "Unexpected value: $actual"
-        assert._log_trace
-        __failures+=1
+        exception.trace
+        test.fail
         return 1
     else
-        __successes+=1
+        test.success
     fi
 }
 
@@ -130,14 +130,4 @@ function assert.stats() {
 function assert._log_failure() {
     printf '\n'
     logger.error "${FUNCNAME[1]} failed: $*"
-}
-
-function assert._log_trace() {
-    logger.error "-> $(caller 1)"
-}
-
-function assert._reset() {
-    __successes=0
-    __failures=0
-    __exceptions=0
 }

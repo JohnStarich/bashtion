@@ -26,3 +26,8 @@ function string.dirname() {
         return 2
     fi
 }
+
+function string.pad() {
+    declare -i pad_size=$1
+    printf "%${pad_size}s" ''
+}

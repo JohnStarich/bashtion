@@ -82,8 +82,11 @@ Check out this simple test suite:
 
 ```bash
 import test/assert
+import test/test
 import utils/retrier
 
+
+test.init "Simple test"
 
 assert echo hello world!
 assert.true echo hey!
@@ -94,13 +97,15 @@ assert.equal 'expected' "$(echo expected)"
 assert.not_equal 'unexpected' "$(echo surprise!)"
 
 # done! let's print our test results.
-assert.stats
+test.stats
 # Output:
 #
 # [ INFO] Test Results:
 # [ INFO] 4/4 (100%) tests passed. 0 tests failed.
 # [ INFO] All tests passed.
 ```
+
+For a more comprehensive test runner, check out the one we use to test Bashtion [here](test.sh).
 
 ## How do I poke around this library?
 
