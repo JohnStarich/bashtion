@@ -3,7 +3,8 @@
 import test/assert
 
 
-assert logger.debug 'hello world!'
+logger.set_level all
+assert logger.debug 'hello world!' >/dev/null
 assert.equal '[DEBUG] hello world!' "$(logger.debug 'hello world!')"
 assert.equal '[ WARN] hello world!' "$(logger.warn 'hello world!')"
 
