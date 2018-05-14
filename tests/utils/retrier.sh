@@ -4,7 +4,7 @@ import test/assert
 import utils/retrier
 
 
-assert retrier.retry echo hi
+assert retrier.retry echo hi >/dev/null
 assert.equal hello "$(retrier.retry echo hello)"
 
 function bad_exit_code() {
@@ -42,5 +42,5 @@ function devious() {
 
 assert.false retrier.retry devious
 
-assert.false retrier.retry 0 echo hello
-assert.false retrier.retry -1 echo hello
+assert.false retrier.retry 0 echo hello >/dev/null
+assert.false retrier.retry -1 echo hello >/dev/null
