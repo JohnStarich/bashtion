@@ -19,7 +19,7 @@ function assert.true() {
     eval "$@" || rc=$?
     if [[ $rc != 0 ]]; then
         assert._log_failure "Return code is non-zero ($rc)"
-        logger.error "$*"
+        logger.error "Failed command: $*"
         exception.trace
         test.fail
         return 1
@@ -39,7 +39,7 @@ function assert.false() {
     eval "$@" || rc=$?
     if [[ $rc == 0 ]]; then
         assert._log_failure "Return code is zero"
-        logger.error "$*"
+        logger.error "Failed command: $*"
         exception.trace
         test.fail
         return 1
