@@ -39,13 +39,21 @@ fi
 EOT
 
 # Add base modules to bootstrap
-cat ./lib/utils/logger.sh
-echo logger.init
-echo
-cat ./lib/utils/modules.sh
-echo modules.init
-echo
+# Modules to load (in-order)
+preloaded_modules=(
+    ./lib/utils/logger.sh
+    ./lib/utils/string.sh
+    ./lib/utils/map.sh
+    ./lib/utils/modules.sh
+)
 
+for module in "${preloaded_modules[@]}"; do
+    cat "$module"
+    declare -- module_name=${module##*/}
+    module_name=${module_name%.sh}
+    echo "declare -F $module_name.init &>/dev/null && $module_name.init"
+    echo
+done
 
 function clean_module() {
     local file=$1
@@ -62,16 +70,15 @@ done
 echo
 
 for file in ./lib/utils/**/*.sh; do
-    if [[ "$file" != ./lib/utils/logger.sh && "$file" != ./lib/utils/modules.sh ]]; then
+    if [[ "${preloaded_modules[*]}" != *"$file"* ]]; then
         cat "$file"
         helper_name=$(basename "$(clean_module "$file")")
         echo "modules._create_module_helper '$helper_name'"
     fi
 done
 
-
 echo
-echo BASHTION_BOOTSTRAPPED=true
+echo declare -gr BASHTION_BOOTSTRAPPED=true
 echo "logger.debug 'Fortification complete.'"
 
 } > "$output_file"

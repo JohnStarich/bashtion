@@ -9,12 +9,12 @@ declare -Aig __failures
 declare -Aig __skips
 declare -Aig __successes
 
-function test.init() {
+function test.start() {
     set -eu +x
     logger.set_level "$LOG_LEVEL"
 
     if [[ $# == 0 ]]; then
-        logger.fatal 'Usage: test.init TEST_NAME'
+        logger.fatal 'Usage: test.start TEST_NAME'
         return 2
     fi
     __test_name=$1

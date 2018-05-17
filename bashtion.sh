@@ -44,10 +44,16 @@ fi
 # shellcheck source=lib/utils/logger.sh
 source "${__bashtion_root}"/lib/utils/logger.sh
 logger.init
+# shellcheck source=lib/utils/string.sh
+source "${__bashtion_root}"/lib/utils/string.sh
+# shellcheck source=lib/utils/map.sh
+source "${__bashtion_root}"/lib/utils/map.sh
 # shellcheck source=lib/utils/modules.sh
 source "${__bashtion_root}"/lib/utils/modules.sh
 modules.init
 modules.register_import_path "$__bashtion_root/lib"
 
-BASHTION_BOOTSTRAPPED=true
+import utils/exception
+
+declare -gr BASHTION_BOOTSTRAPPED=true
 logger.debug 'Fortification complete.'

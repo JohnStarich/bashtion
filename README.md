@@ -9,6 +9,7 @@ Build reusable Bash modules painlessly. Bashtion makes it easy to modularize exi
 * Makes it easy to modularize existing code bases
 * Provides an `import` function to easily use other modules without worrying about things like import cycles
 * Contains a test framework, useful for end-to-end testing (and it is used to [test Bashtion](tests/) itself)
+* Colorized stack traces for debugging
 * Includes a built-in logger and other common utilities
 
 Bashtion is geared toward use in production environments where code reuse and finding bugs becomes critical for success.
@@ -86,7 +87,7 @@ import test/test
 import utils/retrier
 
 
-test.init "Simple test"
+test.start "Simple test"
 
 assert echo hello world!
 assert.true echo hey!

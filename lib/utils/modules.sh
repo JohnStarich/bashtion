@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # Import is an easy way to include other modules.
 
+# Requires the following modules to already be sourced:
+# * utils/logger
+# * utils/map
+# * utils/string
+
 # Set up an import load path
 declare -ag __import_paths=()
 
 declare -Ag __import_cache=(
     # Only include bootstrapped items in initial cache
+    [utils/modules]=1
     [utils/logger]=1
-    [utils/import]=1
+    [utils/map]=1
+    [utils/string]=1
 )
 
 alias import=modules.import
@@ -39,16 +46,22 @@ function modules.import() {
     fi
 
     modules._cache_import "$import_path" 0
-    logger.trace "importing '$import_path'..."
+    logger.trace "Importing '$import_path'..."
     local rc=0
-    modules._load "$file" "${import_path##*/}" || rc=$?
+    local module_name=${import_path##*/}
+    modules._load "$file" "$module_name" || rc=$?
     if [[ $rc != 0 ]]; then
         logger.error "Cannot import '$file': Error occurred during source."
         unset __import_cache["$import_path"]
         return $rc
     fi
     modules._cache_import "$import_path" 1
-    logger.trace "done importing '$import_path'!"
+    logger.trace "Done importing '$import_path'!"
+    if declare -F "$module_name".init &>/dev/null; then
+        logger.trace "Initializing '$module_name'..."
+        "$module_name".init
+        logger.trace "Done initializing '$module_name'!"
+    fi
 }
 
 function modules._cache_import() {
@@ -64,9 +77,44 @@ function modules._load() {
         logger.fatal "Cannot load module name with spaces: '$module_name'"
         exit 2
     fi
-    # Allow arbitrary module imports.
-    # shellcheck disable=SC1090
-    source "$file" || return $?
+    if [[ "${BASHTION_BOOTSTRAPPED:-false}" != true ]]; then
+        # Allow arbitrary module imports.
+        # shellcheck disable=SC1090
+        source "$file" || return $?
+    else
+        # Run extra checks to warn for badly namespaced functions
+        # Only run this after bootstrapping to include helpful debug messages for library internals
+
+        # Array used indirectly
+        # shellcheck disable=SC2034
+        declare -A preexisting_funcs
+        map.read_set preexisting_funcs <<<"$(declare -F | string.nth_token 2)"
+
+        # Allow arbitrary module imports.
+        # shellcheck disable=SC1090
+        source "$file" || return $?
+
+        # Array used indirectly
+        # shellcheck disable=SC2034
+        declare -A current_funcs
+        map.read_set current_funcs <<<"$(declare -F | string.nth_token 2)"
+        declare -A new_function_names
+        map.diff_keys preexisting_funcs current_funcs new_function_names
+        declare -i warnings=0
+        declare -ir warning_log_limit=3
+        for func in "${!new_function_names[@]}"; do
+            if [[ "$func" != "$module_name".* ]]; then
+                if (( warnings < warning_log_limit )); then
+                    logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
+                    logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"
+                fi
+                warnings+=1
+            fi
+        done
+        if (( warnings > warning_log_limit )); then
+            logger.warn "Suppressed $((warnings - warning_log_limit)) additional function name warnings."
+        fi
+    fi
     modules._create_module_helper "$module_name"
 }
 

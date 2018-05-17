@@ -13,10 +13,16 @@ source "${BASH_SOURCE[0]%/*}/bashtion.sh"
 import test/test
 
 
-for test in tests/**/*.sh; do
-    test.init "$test"
+if [[ $# != 0 ]]; then
+    test.start "$*"
     # shellcheck disable=SC1090
-    source "$test" || true
-done
+    source "$*" || true
+else
+    for test in tests/**/*.sh; do
+        test.start "$test"
+        # shellcheck disable=SC1090
+        source "$test" || true
+    done
+fi
 
 test.stats
