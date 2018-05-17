@@ -15,6 +15,7 @@ declare -Arg __levels=(
 declare -rg __max_level=${__levels[OFF]}
 
 declare -g __level=${__levels[ALL]}
+declare -g __log_file
 
 declare -Arg __level_colors=(
     [default]=$'\e[0m'
@@ -28,39 +29,52 @@ declare -Arg __level_colors=(
 function logger.init() {
     LOG_LEVEL=${LOG_LEVEL:-debug}
     logger.set_level "$LOG_LEVEL"
+    LOG_FILE=${LOG_FILE:-/dev/stderr}
+    logger.set_file "$LOG_FILE"
+}
+
+function logger._redirect_to_log_file() {
+    if [[ "$__log_file" == /dev/stderr ]]; then
+        exec >&2
+    elif [[ "$__log_file" != /dev/stdout ]]; then
+        exec >>"$__log_file"
+    fi
 }
 
 function logger.add() {
     # Return as early as possible to reduce overhead (and verbosity, if `set -x` is on)
     [[ "${__levels["${1^^}"]:-$__max_level}" < ${__level} ]] && return
-    local level=${1^^}; shift
-    local message=$*
-    local level_num
-    case "$level" in
-        TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
-            level_num=${__levels["$level"]}
-            ;;
-        *)
-            logger.fatal "Invalid log level: $level"
-            exit 1
-            ;;
-    esac
-    if [[ $level_num < ${__level} ]]; then
-        return
-    fi
+    {
+        logger._redirect_to_log_file
+        local level=${1^^}; shift
+        local message=$*
+        local level_num
+        case "$level" in
+            TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
+                level_num=${__levels["$level"]}
+                ;;
+            *)
+                logger.fatal "Invalid log level: $level"
+                exit 1
+                ;;
+        esac
+        if [[ $level_num < ${__level} ]]; then
+            return
+        fi
 
-    # Colorize if stdout is a tty
-    if [[ -t 1 ]]; then
-        local reset_color=${__level_colors[default]}
-        local level_color=${__level_colors["$level"]:-$reset_color}
-        printf '%s[%s%5s%s] ' "$reset_color" "$level_color" "$level" "$reset_color"
-    else
-        printf '[%5s] ' "$level"
-    fi
-    printf '%s\n' "$message"
-    if [[ -t 1 ]]; then
-        printf '%s' "$reset_color"
-    fi
+        # Colorize if stdout is a tty
+        if [[ -t 1 ]]; then
+            local reset_color=${__level_colors[default]}
+            local level_color=${__level_colors["$level"]:-$reset_color}
+            printf '%s[%s%5s%s] ' "$reset_color" "$level_color" "$level" "$reset_color"
+        else
+            printf '[%5s] ' "$level"
+        fi
+        printf '%s\n' "$message"
+        if [[ -t 1 ]]; then
+            printf '%s' "$reset_color"
+        fi
+    }
 }
 
 alias trace=logger.trace
@@ -108,6 +122,18 @@ function logger.set_level() {
         return 2
     fi
     __level=${__levels["$level"]}
+}
+
+function logger.set_file() {
+    local file=$1
+    if [[ -e "$file" && ! -w "$file" ]]; then
+        logger.fatal "Could not set logger file. Cannot write to file: '$file'"
+        return 2
+    elif [[ -d "$file" ]]; then
+        logger.fatal "Could not set logger file. File must not be a directory: '$file'"
+        return 2
+    fi
+    __log_file="$file"
 }
 
 function logger._level_usage() {

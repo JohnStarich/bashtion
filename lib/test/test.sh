@@ -10,9 +10,7 @@ declare -Aig __skips
 declare -Aig __successes
 
 function test.start() {
-    set -eu +x
-    logger.set_level "$LOG_LEVEL"
-
+    test.cleanup
     if [[ $# == 0 ]]; then
         logger.fatal 'Usage: test.start TEST_NAME'
         return 2
@@ -22,6 +20,12 @@ function test.start() {
     __failures["$__test_name"]=0
     __skips["$__test_name"]=0
     __successes["$__test_name"]=0
+}
+
+function test.cleanup() {
+    set -eu +x
+    logger.set_level "$LOG_LEVEL"
+    logger.set_file "$LOG_FILE"
 }
 
 function test.success() {
@@ -46,7 +50,7 @@ function test.failed() {
 }
 
 function test.stats() {
-    set -eu +x
+    test.cleanup
     declare -i failures=0 successes=0 skips=0 exceptions=0
     for test_failures in "${__failures[@]}"; do
         failures+="$test_failures"

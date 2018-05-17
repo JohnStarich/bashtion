@@ -3,6 +3,7 @@
 import test/assert
 
 
+logger.set_file /dev/stdout
 logger.set_level all
 assert logger.debug 'hello world!' >/dev/null
 assert.equal '[DEBUG] hello world!' "$(logger.debug 'hello world!')"

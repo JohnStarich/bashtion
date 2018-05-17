@@ -21,28 +21,31 @@ function exception.init() {
 }
 
 function exception._trace_frame() {
-    declare -i trace_line=$1
-    local src=$2 func=$3 line=$4
-    local max_src_length=35
-    if [[ "$src" == /* ]] && ((${#src} > max_src_length + 3 )); then
-        # Trim absolute paths to a more reasonable length
-        src=...${src: -$max_src_length}
-    fi
-    if [[ -t 1 ]]; then
-        printf '%s' "${__trace_colors[default]}"
-        string.pad $((trace_line * 2))
-        printf '%s' "${__trace_colors[arrow]}» "
-        printf '%s' "${__trace_colors[default]}"
-        printf '%s' "${__trace_colors[source]}${src}"
-        printf '%s' "${__trace_colors[default]}:"
-        printf '%s' "${__trace_colors[line_number]}${line}"
-        printf '%s' "${__trace_colors[default]} "
-        printf '%s' "${__trace_colors[function]} ${func}${__trace_colors[default]}() "
-        printf '%s\n' "${colors[reset]}"
-    else
-        string.pad $((trace_line * 2))
-        printf -- '-> %s:%d %s()\n' "$src" "$line" "$func"
-    fi
+    {
+        logger._redirect_to_log_file
+        declare -i trace_line=$1
+        local src=$2 func=$3 line=$4
+        local max_src_length=35
+        if [[ "$src" == /* ]] && ((${#src} > max_src_length + 3 )); then
+            # Trim absolute paths to a more reasonable length
+            src=...${src: -$max_src_length}
+        fi
+        if [[ -t 1 ]]; then
+            printf '%s' "${__trace_colors[default]}"
+            string.pad $((trace_line * 2))
+            printf '%s' "${__trace_colors[arrow]}» "
+            printf '%s' "${__trace_colors[default]}"
+            printf '%s' "${__trace_colors[source]}${src}"
+            printf '%s' "${__trace_colors[default]}:"
+            printf '%s' "${__trace_colors[line_number]}${line}"
+            printf '%s' "${__trace_colors[default]} "
+            printf '%s' "${__trace_colors[function]} ${func}${__trace_colors[default]}() "
+            printf '%s\n' "${colors[reset]}"
+        else
+            string.pad $((trace_line * 2))
+            printf -- '-> %s:%d %s()\n' "$src" "$line" "$func"
+        fi
+    }
 }
 
 function exception.trace() {
