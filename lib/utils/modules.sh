@@ -103,7 +103,7 @@ function modules._load() {
         declare -i warnings=0
         declare -ir warning_log_limit=3
         for func in "${!new_function_names[@]}"; do
-            if [[ "$func" != "$module_name".* ]]; then
+            if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
                 if (( warnings < warning_log_limit )); then
                     logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
                     logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"

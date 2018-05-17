@@ -5,11 +5,14 @@ import utils/map
 
 declare -A a b r
 
-map.read_set a <<<$'hey\nthere'
-map.read_set b <<<'hey'
+assert map.read_set a <<<$'hey\nthere'
+assert map.read_set b <<<'hey'
 
-assert.equal 'declare -A a=([hey]="" [there]="" )' "$(declare -p a)"
-assert.equal 'declare -A b=([hey]="" )' "$(declare -p b)"
+assert.equal 'set' "${a[hey]+set}"
+assert.equal 'set' "${a[there]+set}"
+assert.equal 'set' "${b[hey]+set}"
+assert.not_equal 'set' "${b[there]+set}"
 
-map.diff_keys a b r
-assert.equal 'declare -A r=([there]="" )' "$(declare -p r)"
+assert map.diff_keys a b r
+assert.not_equal 'set' "${r[hey]+set}"
+assert.equal 'set' "${r[there]+set}"

@@ -49,6 +49,9 @@ function string.nth_token() {
             fi
             printf '%s\n' "${tokens[token_index]}"
         done
+        if [[ -z "${token_str+x}" ]]; then
+            return 1
+        fi
     }
 }
 

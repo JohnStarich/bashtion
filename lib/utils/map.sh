@@ -4,7 +4,8 @@
 
 function map._is_invalid_map_var() {
     local map_var=$1
-    if declare -p "$map_var" &>/dev/null; then
+    # Bash 4.3 does not properly indicate existing associative arrays by name
+    if declare -A 2>&1 | string.filter 'declare -\S*A\S* '"$map_var"'=' &>/dev/null && [[ "${PIPESTATUS[1]}" == 0 ]]; then
         return 1
     fi
     logger.error "'$map_var' is not an existing variable"
