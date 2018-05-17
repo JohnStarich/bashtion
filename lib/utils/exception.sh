@@ -43,7 +43,7 @@ function exception._trace_frame() {
             printf '%s\n' "${colors[reset]}"
         else
             string.pad $((trace_line * 2))
-            printf -- '-> %s:%d %s()\n' "$src" "$line" "$func"
+            printf -- '-> %s:%s %s()\n' "$src" "$line" "$func"
         fi
     }
 }
