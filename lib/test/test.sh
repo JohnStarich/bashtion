@@ -94,3 +94,14 @@ function test.stats() {
         logger.info "${color}All tests passed."
     fi
 }
+
+function test.require_no_failures() {
+    declare -i failures=0
+    for test_failures in "${__failures[@]}"; do
+        failures+="$test_failures"
+    done
+    for test_exceptions in "${__exceptions[@]}"; do
+        failures+="$test_exceptions"
+    done
+    exit $failures
+}

@@ -26,3 +26,4 @@ else
 fi
 
 test.stats
+test.require_no_failures
