@@ -87,35 +87,10 @@ function modules._load() {
         # Run extra checks to warn for badly namespaced functions
         # Only run this after bootstrapping to include helpful debug messages for library internals
 
-        # Array used indirectly
-        # shellcheck disable=SC2034
-        declare -A preexisting_funcs
-        map.read_set preexisting_funcs <<<"$(declare -F | string.nth_token 2)"
-
+        modules._vet "$module_name" "$file"
         # Allow arbitrary module imports.
         # shellcheck disable=SC1090
         source "$file" || return $?
-
-        # Array used indirectly
-        # shellcheck disable=SC2034
-        declare -A current_funcs
-        map.read_set current_funcs <<<"$(declare -F | string.nth_token 2)"
-        declare -A new_function_names
-        map.diff_keys preexisting_funcs current_funcs new_function_names
-        declare -i warnings=0
-        declare -ir warning_log_limit=${__warning_limit}
-        for func in "${!new_function_names[@]}"; do
-            if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
-                if (( warnings < warning_log_limit )); then
-                    logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
-                    logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"
-                fi
-                warnings+=1
-            fi
-        done
-        if (( warnings > warning_log_limit )); then
-            logger.warn "Suppressed $((warnings - warning_log_limit)) additional function name warnings."
-        fi
     fi
     modules._create_module_helper "$module_name"
 }
@@ -180,4 +155,39 @@ function modules.init() {
 
 function modules.set_warning_limit() {
     __warning_limit=${1:-3}
+}
+
+function modules._vet() {
+    local module_name=$1
+    local file_path=$2
+
+    local lines
+    lines=$(< "$file_path")
+    local func_names=()
+    local func_name=$'([^\n(){}[:space:]]+)'
+    local func_footer='([[:space:]]*\(\))'
+    local tmp=$lines
+    while [[ "$tmp" =~ (function ${func_name}${func_footer}?|${func_name}${func_footer})[:space:]*{* ]]; do
+        if [[ -n "${BASH_REMATCH[2]}" ]]; then
+            func_names+=("${BASH_REMATCH[2]}")
+        else
+            func_names+=("${BASH_REMATCH[4]}")
+        fi
+        tmp=${tmp/${BASH_REMATCH[0]}/}
+    done
+
+    declare -i warnings=0
+    declare -ir warning_log_limit=${__warning_limit}
+    for func in "${func_names[@]}"; do
+        if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
+            if (( warnings < warning_log_limit )); then
+                logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
+                logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"
+            fi
+            warnings+=1
+        fi
+    done
+    if (( warnings > warning_log_limit )); then
+        logger.warn "Suppressed $((warnings - warning_log_limit)) additional function name warnings."
+    fi
 }
