@@ -17,6 +17,8 @@ declare -Ag __import_cache=(
     [utils/string]=1
 )
 
+declare -ig __warning_limit=3
+
 alias import=modules.import
 function modules.import() {
     local import_path=${1%.sh}
@@ -101,7 +103,7 @@ function modules._load() {
         declare -A new_function_names
         map.diff_keys preexisting_funcs current_funcs new_function_names
         declare -i warnings=0
-        declare -ir warning_log_limit=3
+        declare -ir warning_log_limit=${__warning_limit}
         for func in "${!new_function_names[@]}"; do
             if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
                 if (( warnings < warning_log_limit )); then
@@ -174,4 +176,8 @@ function modules.register_import_path() {
 function modules.init() {
     clobber=true modules._create_module_helper logger
     clobber=true modules._create_module_helper modules
+}
+
+function modules.set_warning_limit() {
+    __warning_limit=${1:-3}
 }
