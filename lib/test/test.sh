@@ -40,9 +40,11 @@ function test.skip() {
     __skips["$__test_name"]+=1
 }
 
+alias test.abort='test.abort; return 1'
 function test.abort() {
     __exceptions["$__test_name"]+=1
-    # TODO trigger EXIT
+    logger.error 'Test aborted.'
+    exception.trace
 }
 
 function test.failed() {
