@@ -89,6 +89,48 @@ function assert.not_equal() {
     fi
 }
 
+function assert.contains() {
+    if [[ $# != 2 ]]; then
+        logger.fatal "Usage: assert.contains STRING SUBSTRING"
+        exception.trace
+        test.abort
+        return 2
+    fi
+    local haystack=$1
+    local needle=$2
+    if [[ "$haystack" != *"$needle"* ]]; then
+        assert._log_failure "String does not contain '$needle'"
+        logger.error "Substring: $needle"
+        logger.error "String: $haystack"
+        exception.trace
+        test.fail
+        return 1
+    else
+        test.success
+    fi
+}
+
+function assert.not_contains() {
+    if [[ $# != 2 ]]; then
+        logger.fatal "Usage: assert.not_contains STRING SUBSTRING"
+        exception.trace
+        test.abort
+        return 2
+    fi
+    local haystack=$1
+    local needle=$2
+    if [[ "$haystack" == *"$needle"* ]]; then
+        assert._log_failure "String contains '$needle'"
+        logger.error "Substring: $needle"
+        logger.error "String: $haystack"
+        exception.trace
+        test.fail
+        return 1
+    else
+        test.success
+    fi
+}
+
 function assert._progress_line() {
     local total=$((__successes + __failures + __exceptions))
     local success_rate
