@@ -36,7 +36,9 @@ function logger.init() {
 function logger._redirect_to_log_file() {
     if [[ "$__log_file" == /dev/stderr ]]; then
         exec >&2
-    elif [[ "$__log_file" != /dev/stdout ]]; then
+    elif [[ "$__log_file" == /dev/stdout ]]; then
+        exec >&1
+    else
         exec >>"$__log_file"
     fi
 }

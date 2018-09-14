@@ -167,7 +167,7 @@ function modules._vet() {
     local func_name=$'([^\n(){}[:space:]]+)'
     local func_footer='([[:space:]]*\(\))'
     local tmp=$lines
-    while [[ "$tmp" =~ (function ${func_name}${func_footer}?|${func_name}${func_footer})[:space:]*{* ]]; do
+    while [[ "$tmp" =~ (function ${func_name}${func_footer}?|${func_name}${func_footer})[:space:]*\{* ]]; do
         if [[ -n "${BASH_REMATCH[2]}" ]]; then
             func_names+=("${BASH_REMATCH[2]}")
         else
@@ -178,15 +178,17 @@ function modules._vet() {
 
     declare -i warnings=0
     declare -ir warning_log_limit=${__warning_limit}
-    for func in "${func_names[@]}"; do
-        if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
-            if (( warnings < warning_log_limit )); then
-                logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
-                logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"
+    if [[ -n "${func_names+x}" ]]; then
+        for func in "${func_names[@]}"; do
+            if [[ "$func" != "$module_name" && "$func" != "$module_name".* ]]; then
+                if (( warnings < warning_log_limit )); then
+                    logger.warn "Functions should be namespaced with the module's name, but found: '$func'"
+                    logger.warn "Remove this warning by renaming the function to include the prefix '$module_name.'"
+                fi
+                warnings+=1
             fi
-            warnings+=1
-        fi
-    done
+        done
+    fi
     if (( warnings > warning_log_limit )); then
         logger.warn "Suppressed $((warnings - warning_log_limit)) additional function name warnings."
     fi
