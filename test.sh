@@ -19,7 +19,6 @@ if [[ $# != 0 ]]; then
     source "$*" || true
 else
     for test in tests/**/*.sh; do
-    #for test in $(find tests -type f -name '*.sh' | sort -R); do
         test.start "$test"
         # shellcheck disable=SC1090
         source "$test" || true
