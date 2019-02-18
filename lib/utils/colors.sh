@@ -34,103 +34,103 @@ declare -Agr background_colors=(
     [white]=$'\e[0;47m'
 )
 
-function colors.color() {
+function color() {
     if [[ $# == 0 ]]; then
-        logger.error 'No color name provided'
-        colors.usage
+        logger error 'No color name provided'
+        usage
         return 2
     fi
     local name=$1
-    if [[ -n "${colors["$name"]:+x}" ]]; then
-        logger.error 'Invalid color name'
-        colors.usage
+    if [[ -z "${colors["$name"]:+x}" ]]; then
+        logger error 'Invalid color name'
+        usage
         return 2
     fi
     printf '%s' "${colors["$name"]}"
 }
 
-function colors.bold_color() {
+function bold_color() {
     if [[ $# == 0 ]]; then
-        logger.error 'No bold_color name provided'
-        colors.usage
+        logger error 'No bold_color name provided'
+        usage
         return 2
     fi
     local name=$1
     if [[ -n "${bold_colors["$name"]:+x}" ]]; then
-        logger.error 'Invalid bold_color name'
-        colors.usage
+        logger error 'Invalid bold_color name'
+        usage
         return 2
     fi
     printf '%s' "${bold_colors["$name"]}"
 }
 
-function colors.background_color() {
+function background_color() {
     if [[ $# == 0 ]]; then
-        logger.error 'No background_color name provided'
-        colors.usage
+        logger error 'No background_color name provided'
+        usage
         return 2
     fi
     local name=$1
     if [[ -n "${background_colors["$name"]:+x}" ]]; then
-        logger.error 'Invalid background_color name'
-        colors.usage
+        logger error 'Invalid background_color name'
+        usage
         return 2
     fi
     printf '%s' "${background_colors["$name"]}"
 }
 
-function colors.bold() {
+function bold() {
     printf '\e[1m'
 }
 
-function colors._rgb() {
+function _rgb() {
     if [[ $# != 3 ]]; then
-        logger.error 'Usage: colors.rgb RED GREEN BLUE'
-        logger.error 'Color values must be between 0 and 255'
+        logger error 'Usage: rgb RED GREEN BLUE'
+        logger error 'Color values must be between 0 and 255'
         return 2
     fi
     declare -i red=$1 green=$2 blue=$3
     if (( red > 255 || red < 0 || green > 255 || green < 0 || blue > 255 || blue < 0 )); then
-        logger.error 'Usage: colors.rgb RED GREEN BLUE'
-        logger.error 'Color values must be between 0 and 255'
+        logger error 'Usage: rgb RED GREEN BLUE'
+        logger error 'Color values must be between 0 and 255'
         return 2
     fi
     printf '\e[38;2;%d;%d;%dm' "$red" "$green" "$blue"
 }
 
-function colors.rgb() {
+function rgb() {
     # Reset "brightness" (bold)
     printf '\e[0m'
-    colors._rgb "$@"
+    _rgb "$@"
 }
 
-function colors.bold_rgb() {
+function bold_rgb() {
     # Set "brightness" (bold)
-    colors.bold
-    colors._rgb "$@"
+    bold
+    _rgb "$@"
 }
 
-function colors.background_rgb() {
+function background_rgb() {
     if [[ $# != 3 ]]; then
-        logger.error 'Usage: colors.background_rgb RED GREEN BLUE'
-        logger.error 'Color values must be between 0 and 255'
+        logger error 'Usage: background_rgb RED GREEN BLUE'
+        logger error 'Color values must be between 0 and 255'
         return 2
     fi
     declare -i red=$1 green=$2 blue=$3
     if (( red > 255 || red < 0 || green > 255 || green < 0 || blue > 255 || blue < 0 )); then
-        logger.error 'Usage: colors.background_rgb RED GREEN BLUE'
-        logger.error 'Color values must be between 0 and 255'
+        logger error 'Usage: background_rgb RED GREEN BLUE'
+        logger error 'Color values must be between 0 and 255'
         return 2
     fi
     printf '\e[48;2;%d;%d;%dm' "$red" "$green" "$blue"
 }
 
-function colors.usage() {
+function usage() {
     printf 'Colors usage:
-    colors.color COLOR_NAME
-    colors.bold_color COLOR_NAME
-    colors.background_color COLOR_NAME
-    colors.bold
+    color COLOR_NAME
+    bold_color COLOR_NAME
+    background_color COLOR_NAME
+    bold
 
     color names:
         * black
