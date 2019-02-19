@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -49,19 +50,24 @@ func Unload() {
 
 // Run executes this plugin with the given arguments
 func Run(args []string) (int, error) {
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return 2, errUsage
 	}
-	if args[0] == "set" {
-		if args[1] != "level" || len(args) < 3 {
-			return 2, errUsage
+	if args[0] == "level" {
+		if len(args) == 1 {
+			fmt.Println(logLevel.String())
+			return 0, nil
 		}
-		level, err := levelFromString(args[2])
+		level, err := levelFromString(args[1])
 		if err != nil {
 			return 2, err
 		}
 		logLevel.SetLevel(level)
 		return 0, nil
+	}
+
+	if len(args) < 2 {
+		return 2, errUsage
 	}
 	level, err := levelFromString(args[0])
 	if err != nil {
