@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/johnstarich/goenable/env"
 	"github.com/johnstarich/goenable/stringutil"
 	"mvdan.cc/sh/syntax"
 )
@@ -41,8 +43,24 @@ func Run(args []string) (int, error) {
 		return 2, errors.New(Usage())
 	}
 	outputEnvVar, fileName := args[0], args[1]
-	parser := syntax.NewParser()
-	reader, err := os.Open(fileName)
+	// ensure PATH is consistent
+	if err := env.Setenv("PATH", env.Getenv("PATH")); err != nil {
+		return 1, err
+	}
+	filePath, err := exec.LookPath(fileName)
+	if err != nil {
+		// attempt to find file at the given path
+		if !strings.HasSuffix(fileName, ".sh") {
+			var errExt error
+			filePath, errExt = exec.LookPath(fileName + ".sh")
+			if errExt != nil {
+				return 2, fmt.Errorf("Error locating '%s'. Paths attempted:\n\t%s\n\t%s", fileName, err, errExt)
+			}
+		} else {
+			return 2, err
+		}
+	}
+	reader, err := os.Open(filePath)
 	if err != nil {
 		return 1, err
 	}
@@ -50,6 +68,7 @@ func Run(args []string) (int, error) {
 
 	name := filepath.Base(fileName)
 	name = strings.TrimSuffix(name, filepath.Ext(name))
+	parser := syntax.NewParser()
 	f, err := parser.Parse(reader, name)
 	if err != nil {
 		return 1, err
@@ -59,7 +78,7 @@ func Run(args []string) (int, error) {
 	buf := bytes.NewBufferString(extraScript)
 	printer := syntax.NewPrinter()
 	printer.Print(buf, f)
-	os.Setenv(outputEnvVar, buf.String())
+	env.Setenv(outputEnvVar, buf.String())
 	return 0, nil
 }
 
