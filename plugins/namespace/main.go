@@ -14,6 +14,7 @@ import (
 
 const (
 	functionPrefixSeparator = "-"
+	variablePrefixSeparator = "_"
 )
 
 // Usage returns the full set of documentation for this plugin
@@ -65,14 +66,54 @@ func Run(args []string) (int, error) {
 func mutate(f *syntax.File, name string) string {
 	extraScript := ""
 	functionNames := make(map[string]bool)
+	globalVarNames := make(map[string]bool)
 	syntax.Walk(f, func(node syntax.Node) bool {
 		switch x := node.(type) {
+		case *syntax.Block:
+			// only scan for 'declare -g' statements when inside blocks
+			syntax.Walk(node, func(blockNode syntax.Node) bool {
+				switch y := blockNode.(type) {
+				case *syntax.DeclClause:
+					if y.Variant.Value != "declare" {
+						return true
+					}
+					foundGlobalOpt := false
+					for _, opt := range y.Opts {
+						if strings.ContainsRune(opt.Lit(), 'g') {
+							foundGlobalOpt = true
+							break
+						}
+					}
+					if !foundGlobalOpt {
+						return true
+					}
+					for _, a := range y.Assigns {
+						if a.Name == nil {
+							globalVarNames[a.Value.Lit()] = true
+						} else {
+							globalVarNames[a.Name.Value] = true
+						}
+					}
+				}
+				return true
+			})
+			// don't look for globals inside blocks
+			return false
 		case *syntax.FuncDecl:
+			// find and prefix function names (replace function calls later)
 			functionNames[x.Name.Value] = true
 			x.Name.Value = name + functionPrefixSeparator + x.Name.Value
+		case *syntax.Assign:
+			// find global variable names
+			if x.Name == nil {
+				globalVarNames[x.Value.Lit()] = true
+			} else {
+				globalVarNames[x.Name.Value] = true
+			}
 		}
 		return true
 	})
+
 	prefix := name + functionPrefixSeparator
 	allFunctionNames := ""
 	for name := range functionNames {
@@ -122,6 +163,7 @@ func mutate(f *syntax.File, name string) string {
 	syntax.Walk(f, func(node syntax.Node) bool {
 		switch x := node.(type) {
 		case *syntax.CallExpr:
+			// replace functions names with prefixed versions
 			if len(x.Args) > 0 && len(x.Args[0].Parts) == 1 {
 				switch funcName := x.Args[0].Parts[0].(type) {
 				case *syntax.Lit:
@@ -129,6 +171,16 @@ func mutate(f *syntax.File, name string) string {
 						funcName.Value = name + functionPrefixSeparator + funcName.Value
 					}
 				}
+			}
+		case *syntax.ParamExp:
+			// replace global variable names with prefixed versions
+			if globalVarNames[x.Param.Value] {
+				x.Param.Value = name + variablePrefixSeparator + x.Param.Value
+			}
+		case *syntax.Assign:
+			// replace global variable names with prefixed versions
+			if globalVarNames[x.Name.Value] {
+				x.Name.Value = name + variablePrefixSeparator + x.Name.Value
 			}
 		}
 		return true
