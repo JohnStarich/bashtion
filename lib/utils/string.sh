@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # String utilities written entirely in Bash.
 
-function string.basename() {
+function basename() {
     if [[ "$*" =~ ([^/]+)/*$|(/)/*$ ]]; then
         printf '%s\n' "${BASH_REMATCH[1]:-${BASH_REMATCH[2]}}"
     elif [[ -n "$*" ]]; then
@@ -9,7 +9,7 @@ function string.basename() {
     fi
 }
 
-function string.dirname() {
+function dirname() {
     local path=$*
     if [[ "$path" =~ /*[^/]*/*$ ]]; then
         local sans_base="${path%"${BASH_REMATCH[0]}"}"
@@ -27,12 +27,12 @@ function string.dirname() {
     fi
 }
 
-function string.pad() {
+function pad() {
     declare -i pad_size=$1
     printf "%${pad_size}s" ''
 }
 
-function string.nth_token() {
+function nth_token() {
     declare -i token_index=$1; shift
     {
         if [[ $# != 0 ]]; then
@@ -44,7 +44,7 @@ function string.nth_token() {
             # shellcheck disable=SC2206
             declare -a tokens=($token_str)
             if ((token_index < -${#tokens[@]} || token_index >= ${#tokens[@]})); then
-                logger.error "Index out of bounds: (${tokens[*]}) at index $token_index"
+                logger error "Index out of bounds: (${tokens[*]}) at index $token_index"
                 return 2
             fi
             printf '%s\n' "${tokens[token_index]}"
@@ -55,7 +55,7 @@ function string.nth_token() {
     }
 }
 
-function string.filter() {
+function filter() {
     local pattern=$1; shift
     {
         if [[ $# != 0 ]]; then
@@ -70,7 +70,7 @@ function string.filter() {
     }
 }
 
-function string.filter_not() {
+function filter_not() {
     local pattern=$1; shift
     {
         if [[ $# != 0 ]]; then

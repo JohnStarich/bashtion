@@ -9,7 +9,7 @@ true
 [ -n "$BASH_VERSINFO" ] && [ "${BASH_VERSINFO[0]}" -lt 4 ] && echo "This library requires Bash 4 or higher" && exit 1 || true
 
 if [[ "${BASHTION_BOOTSTRAPPED:-}" == true ]]; then
-    logger.warn 'Already bootstrapped. Skipping...'
+    logger warn 'Already bootstrapped. Skipping...'
     return 0
 fi
 
@@ -29,31 +29,51 @@ if [[ "${UNSAFE:-}" != thisisnotproduction ]]; then
 fi
 
 # Get absolute path to the repository root
-__bashtion_root=${BASH_SOURCE[0]%/*}
-if [[ "${__bashtion_root}" == "${BASH_SOURCE[0]}" ]]; then
+bashtion_root=${BASH_SOURCE[0]%/*}
+if [[ "${bashtion_root}" == "${BASH_SOURCE[0]}" ]]; then
     # Presumably sourcing from the same directory
-    __bashtion_root=$(pwd -P)
-elif [[ ! -d "${__bashtion_root}" ]]; then
+    bashtion_root=$(pwd -P)
+elif [[ ! -d "${bashtion_root}" ]]; then
     echo 'Failed to find Bashtion source directory.'
     return 1
 else
-    __bashtion_root=$(cd "${BASH_SOURCE[0]%/*}" && pwd -P)
+    bashtion_root=$(cd "${BASH_SOURCE[0]%/*}" && pwd -P)
 fi
 
 # Immediately try and make our lives easier: include a simple logger and an importer.
-# shellcheck source=lib/utils/logger.sh
-source "${__bashtion_root}"/lib/utils/logger.sh
-logger.init
-# shellcheck source=lib/utils/string.sh
-source "${__bashtion_root}"/lib/utils/string.sh
-# shellcheck source=lib/utils/map.sh
-source "${__bashtion_root}"/lib/utils/map.sh
-# shellcheck source=lib/utils/modules.sh
-source "${__bashtion_root}"/lib/utils/modules.sh
-modules.init
-modules.register_import_path "$__bashtion_root/lib"
+if [[ ! -f "${bashtion_root}"/cache/goenable.so ]]; then
+    mkdir -p "${bashtion_root}"/cache
+    curl -fsSL "https://github.com/JohnStarich/goenable/releases/download/0.2.0/goenable-$(uname -s)-$(uname -m).so" > "${bashtion_root}"/cache/goenable.so
+fi
+enable -f "${bashtion_root}"/cache/goenable.so goenable
 
-import utils/exception
+prepare_plugin() {
+    local plugin=$1
+    local plugin_loc plugin_output
+    plugin_loc="${bashtion_root}/out/${plugin}"
+    # TODO download plugins and use cache dir
+    #if [[ ! -f "$plugin_loc" ]]; then
+    #    curl -fsSL "https://github.com/JohnStarich/bashtion/releases/download/0.1.0/${plugin}-$(uname -s)-$(uname -m)" > "$plugin_loc"
+    #fi
+    goenable load "$plugin_loc" plugin_output
+    eval "${plugin_output}"
+}
+
+for plugin in namespace logger; do
+    prepare_plugin "$plugin"
+done
+
+# shellcheck source=lib/utils/modules.sh
+source "${bashtion_root}"/lib/utils/modules.sh
+
+PATH="$PATH:${bashtion_root}/lib"
+
+# Erase bootstrapped vars
+unset -f prepare_plugin
+unset bashtion_root
+
+#import utils/string
+#import utils/exception
 
 declare -gr BASHTION_BOOTSTRAPPED=true
-logger.debug 'Fortification complete.'
+logger debug 'Fortification complete.'

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/johnstarich/goenable/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -29,7 +30,12 @@ logger set level LEVEL
 
 // Load runs any set up required by this plugin
 func Load() error {
-	logLevel = zap.NewAtomicLevelAt(zap.InfoLevel)
+	logLevelEnv := env.Getenv("LOG_LEVEL")
+	initialLevel := zap.InfoLevel
+	if l, err := levelFromString(logLevelEnv); err == nil {
+		initialLevel = l
+	}
+	logLevel = zap.NewAtomicLevelAt(initialLevel)
 
 	encoderCfg := zap.NewDevelopmentEncoderConfig()
 	encoderCfg.TimeKey = ""

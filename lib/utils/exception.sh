@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
 
-import utils/colors
+import lib/utils/colors
+import lib/utils/string
 
 
-declare -Arg __trace_colors=(
+declare -Arg trace_colors=(
     [default]="${colors[reset]}"
-    [arrow]="$(colors.bold_rgb 255 0 0)"
-    [source]="$(colors.bold)"
-    [function]="$(colors.rgb 32 179 142)"
-    [line_number]="$(colors.rgb 94 44 242)"
+    [arrow]="$(colors bold_rgb 255 0 0)"
+    [source]="$(colors bold)"
+    [function]="$(colors rgb 32 179 142)"
+    [line_number]="$(colors rgb 94 44 242)"
 )
 
-function exception.init() {
+function init() {
     set -E
-    trap 'exception.trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "${LINENO}"' ERR
+    trap 'trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "${LINENO}"' ERR
     # Bash 4 has special behavior for the EXIT trap and resets LINENO to 1
     # Source: https://lists.gnu.org/archive/html/bug-bash/2010-09/msg00035.html
     # For now, just indicate it was triggered by an exit
-    trap 'if [[ $? != 0 ]]; then exception.trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "(exit)"; fi' EXIT
+    trap 'if [[ $? != 0 ]]; then trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "(exit)"; fi' EXIT
 }
 
-function exception._trace_frame() {
+function _trace_frame() {
     {
-        logger._redirect_to_log_file
+        exec >&2
         declare -i trace_line=$1
         local src=$2 func=$3 line=$4
         local max_src_length=35
@@ -31,33 +32,33 @@ function exception._trace_frame() {
             src=...${src: -$max_src_length}
         fi
         if [[ -t 1 ]]; then
-            printf '%s' "${__trace_colors[default]}"
-            string.pad $((trace_line * 2))
-            printf '%s' "${__trace_colors[arrow]}» "
-            printf '%s' "${__trace_colors[default]}"
-            printf '%s' "${__trace_colors[source]}${src}"
-            printf '%s' "${__trace_colors[default]}:"
-            printf '%s' "${__trace_colors[line_number]}${line}"
-            printf '%s' "${__trace_colors[default]} "
-            printf '%s' "${__trace_colors[function]} ${func}${__trace_colors[default]}() "
-            printf '%s\n' "${colors[reset]}"
+            printf '%s' "${trace_colors[default]}"
+            string pad $((trace_line * 2))
+            printf '%s' "${trace_colors[arrow]}» "
+            printf '%s' "${trace_colors[default]}"
+            printf '%s' "${trace_colors[source]}${src}"
+            printf '%s' "${trace_colors[default]}:"
+            printf '%s' "${trace_colors[line_number]}${line}"
+            printf '%s' "${trace_colors[default]} "
+            printf '%s' "${trace_colors[function]} ${func}${trace_colors[default]}() "
+            printf '%s\n' "${colors_colors[reset]}"
         else
-            string.pad $((trace_line * 2))
+            string pad $((trace_line * 2))
             printf -- '-> %s:%s %s()\n' "$src" "$line" "$func"
         fi
     }
 }
 
-function exception.trace() {
+function trace() {
     declare -i trace_line=0
     if [[ $# != 0 ]]; then
         local err_source=$1 err_func=$2 err_lineno=$3
-        exception._trace_frame "$trace_line" "$err_source" "$err_func" "$err_lineno"
+        _trace_frame "$trace_line" "$err_source" "$err_func" "$err_lineno"
         trace_line+=1
     fi
     declare -i frame=1
     while [[ -n "${BASH_SOURCE[$frame + 1]:-}" ]]; do
-        exception._trace_frame "$trace_line" "${BASH_SOURCE[$frame + 1]}" "${FUNCNAME[$frame]}" "${BASH_LINENO[$frame]}"
+        _trace_frame "$trace_line" "${BASH_SOURCE[$frame + 1]}" "${FUNCNAME[$frame]}" "${BASH_LINENO[$frame]}"
         frame+=1
         trace_line+=1
     done

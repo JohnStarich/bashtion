@@ -74,50 +74,30 @@ func Run(args []string) (int, error) {
 		return 1, err
 	}
 
-	extraScript := mutate(f, name)
-	buf := bytes.NewBufferString(extraScript)
+	buf := bytes.NewBufferString("")
+	needsInit, err := mutate(buf, f, name)
+	if err != nil {
+		return 1, err
+	}
 	printer := syntax.NewPrinter()
-	printer.Print(buf, f)
+	if err := printer.Print(buf, f); err != nil {
+		return 1, err
+	}
+	if needsInit {
+		if _, err := buf.WriteString(name + functionPrefixSeparator + "init\n"); err != nil {
+			return 1, err
+		}
+	}
+
 	env.Setenv(outputEnvVar, buf.String())
 	return 0, nil
 }
 
-func mutate(f *syntax.File, name string) string {
-	extraScript := ""
+func mutate(buf *bytes.Buffer, f *syntax.File, name string) (bool, error) {
 	functionNames := make(map[string]bool)
 	globalVarNames := make(map[string]bool)
 	syntax.Walk(f, func(node syntax.Node) bool {
 		switch x := node.(type) {
-		case *syntax.Block:
-			// only scan for 'declare -g' statements when inside blocks
-			syntax.Walk(node, func(blockNode syntax.Node) bool {
-				switch y := blockNode.(type) {
-				case *syntax.DeclClause:
-					if y.Variant.Value != "declare" {
-						return true
-					}
-					foundGlobalOpt := false
-					for _, opt := range y.Opts {
-						if strings.ContainsRune(opt.Lit(), 'g') {
-							foundGlobalOpt = true
-							break
-						}
-					}
-					if !foundGlobalOpt {
-						return true
-					}
-					for _, a := range y.Assigns {
-						if a.Name == nil {
-							globalVarNames[a.Value.Lit()] = true
-						} else {
-							globalVarNames[a.Name.Value] = true
-						}
-					}
-				}
-				return true
-			})
-			// don't look for globals inside blocks
-			return false
 		case *syntax.FuncDecl:
 			// find and prefix function names (replace function calls later)
 			functionNames[x.Name.Value] = true
@@ -129,6 +109,9 @@ func mutate(f *syntax.File, name string) string {
 			} else {
 				globalVarNames[x.Name.Value] = true
 			}
+		case nil:
+			// stop processing after first level
+			return false
 		}
 		return true
 	})
@@ -141,15 +124,18 @@ func mutate(f *syntax.File, name string) string {
 
 	if !functionNames["usage"] {
 		functionNames["usage"] = true
-		extraScript += stringutil.Dedent(`
+		_, err := buf.WriteString(stringutil.Dedent(`
 			` + prefix + `usage() {
 				echo 'Usage: ` + name + ` COMMAND' >&2
 				echo 'Available commands: '` + allFunctionNames + ` >&2
 			}
-		`)
+		`))
+		if err != nil {
+			return false, err
+		}
 	}
 	if !functionNames[name] {
-		extraScript += stringutil.Dedent(`
+		_, err := buf.WriteString(stringutil.Dedent(`
 			` + name + `() {
 				local subCommand=$1
 				if [[ -z "$subCommand" ]]; then
@@ -164,10 +150,13 @@ func mutate(f *syntax.File, name string) string {
 				fi
 				"` + prefix + `${subCommand}" "$@"
 			}
-		`)
+		`))
+		if err != nil {
+			return false, err
+		}
 	}
 	if !functionNames["complete"] {
-		extraScript += stringutil.Dedent(`
+		_, err := buf.WriteString(stringutil.Dedent(`
 			` + prefix + `complete() {
 				local options=(` + allFunctionNames + `)
 				local prev=${COMP_WORDS[COMP_CWORD - 1]}
@@ -176,9 +165,15 @@ func mutate(f *syntax.File, name string) string {
 				fi
 				COMPREPLY+=( $(compgen -W "${options[*]}" -- "${COMP_WORDS[COMP_CWORD]}") )
 			}
-		`)
+		`))
+		if err != nil {
+			return false, err
+		}
 	}
-	extraScript += fmt.Sprintf("complete -F %s %s\n\n", prefix+"complete", name)
+	_, err := buf.WriteString(fmt.Sprintf("complete -F %s %s\n\n", prefix+"complete", name))
+	if err != nil {
+		return false, err
+	}
 	syntax.Walk(f, func(node syntax.Node) bool {
 		switch x := node.(type) {
 		case *syntax.CallExpr:
@@ -204,7 +199,8 @@ func mutate(f *syntax.File, name string) string {
 		}
 		return true
 	})
-	return extraScript
+
+	return functionNames["init"], nil
 }
 
 func main() {}
