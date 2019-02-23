@@ -1,15 +1,16 @@
-package main
+package namespace
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/johnstarich/goenable/env"
+	"github.com/johnstarich/bashtion/plugin/command"
+	"github.com/johnstarich/bashtion/plugin/env"
+	"github.com/johnstarich/bashtion/plugin/usage"
 	"github.com/johnstarich/goenable/stringutil"
 	"mvdan.cc/sh/syntax"
 )
@@ -19,8 +20,13 @@ const (
 	variablePrefixSeparator = "_"
 )
 
+// Namespace is part of an import function that helps reduce global name collisions
+type Namespace struct {
+	command.Command
+}
+
 // Usage returns the full set of documentation for this plugin
-func Usage() string {
+func (n *Namespace) Usage() string {
 	return strings.TrimSpace(`
 Usage: namespace ENV_VAR SCRIPT_FILE
 'namespace' is a utility to load scripts and make them namespace-friendly.
@@ -29,23 +35,23 @@ Namespaces make it easier to create reusable modules and don't conflict in a glo
 }
 
 // Load runs any set up required by this plugin
-func Load() error {
+func (n *Namespace) Load() error {
 	return nil
 }
 
 // Unload runs any tear down required by this plugin
-func Unload() {
+func (n *Namespace) Unload() {
 }
 
 // Run executes this plugin with the given arguments
-func Run(args []string) (int, error) {
+func (n *Namespace) Run(args []string) error {
 	if len(args) != 2 {
-		return 2, errors.New(Usage())
+		return usage.Errorf(n.Usage())
 	}
 	outputEnvVar, fileName := args[0], args[1]
 	// ensure PATH is consistent
 	if err := env.Setenv("PATH", env.Getenv("PATH")); err != nil {
-		return 1, err
+		return err
 	}
 	filePath, err := exec.LookPath(fileName)
 	if err != nil {
@@ -54,15 +60,15 @@ func Run(args []string) (int, error) {
 			var errExt error
 			filePath, errExt = exec.LookPath(fileName + ".sh")
 			if errExt != nil {
-				return 2, fmt.Errorf("Error locating '%s'. Paths attempted:\n\t%s\n\t%s", fileName, err, errExt)
+				return usage.Errorf("Error locating '%s'. Paths attempted:\n\t%s\n\t%s", fileName, err, errExt)
 			}
 		} else {
-			return 2, err
+			return usage.Errorf("Error locating '%s'. Paths attempted:\n\t%s", fileName, err)
 		}
 	}
 	reader, err := os.Open(filePath)
 	if err != nil {
-		return 1, err
+		return err
 	}
 	defer reader.Close()
 
@@ -71,26 +77,26 @@ func Run(args []string) (int, error) {
 	parser := syntax.NewParser()
 	f, err := parser.Parse(reader, name)
 	if err != nil {
-		return 1, err
+		return err
 	}
 
 	buf := bytes.NewBufferString("")
 	needsInit, err := mutate(buf, f, name)
 	if err != nil {
-		return 1, err
+		return err
 	}
 	printer := syntax.NewPrinter()
 	if err := printer.Print(buf, f); err != nil {
-		return 1, err
+		return err
 	}
 	if needsInit {
 		if _, err := buf.WriteString(name + functionPrefixSeparator + "init\n"); err != nil {
-			return 1, err
+			return err
 		}
 	}
 
 	env.Setenv(outputEnvVar, buf.String())
-	return 0, nil
+	return nil
 }
 
 func mutate(buf *bytes.Buffer, f *syntax.File, name string) (bool, error) {

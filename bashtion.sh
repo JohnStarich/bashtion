@@ -53,7 +53,7 @@ prepare_plugin() {
     plugin_loc="${bashtion_root}/out/${plugin}"
     # TODO download plugins and use cache dir
     #if [[ ! -f "$plugin_loc" ]]; then
-    #    curl -fsSL "https://github.com/JohnStarich/bashtion/releases/download/0.1.0/${plugin}-$(uname -s)-$(uname -m)" > "$plugin_loc"
+    #    curl -fsSL "https://github.com/JohnStarich/bashtion/releases/download/{{BASHTION_VERSION}}/${plugin}-$(uname -s)-$(uname -m)" > "$plugin_loc"
     #fi
     goenable load "$plugin_loc" plugin_output
     eval "${plugin_output}"

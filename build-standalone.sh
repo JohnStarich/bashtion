@@ -17,7 +17,7 @@ cat <<EOT
 [ -n "\$BASH_VERSINFO" ] && [ "\${BASH_VERSINFO[0]}" -lt 4 ] && echo "This library requires Bash 4 or higher" && exit 1 || true
 
 if [[ "\${BASHTION_BOOTSTRAPPED:-}" == true ]]; then
-    logger.warn 'Already bootstrapped. Skipping...'
+    logger warn 'Already bootstrapped. Skipping...'
     return 0
 fi
 
@@ -41,18 +41,17 @@ EOT
 # Add base modules to bootstrap
 # Modules to load (in-order)
 preloaded_modules=(
-    ./lib/utils/logger.sh
     ./lib/utils/string.sh
-    ./lib/utils/map.sh
     ./lib/utils/modules.sh
 )
 
-for module in "${preloaded_modules[@]}"; do
-    cat "$module"
-    declare -- module_name=${module##*/}
-    module_name=${module_name%.sh}
-    echo "declare -F $module_name.init &>/dev/null && $module_name.init"
-    echo
+preloaded_plugins=(
+    ./out/namespace
+    ./out/logger
+)
+
+for plugin in "${preloaded_plugins[@]}"; do
+    curl -fsSL "https://github.com/JohnStarich/goenable/releases/download/0.2.0/goenable-$(uname -s)-$(uname -m).so" > "${bashtion_root}"/cache/goenable.so
 done
 
 function clean_module() {
