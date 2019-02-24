@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/johnstarich/bashtion/plugin/command"
-	"github.com/johnstarich/bashtion/plugin/env"
 	"github.com/johnstarich/bashtion/plugin/usage"
+	"github.com/johnstarich/goenable/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/johnstarich/bashtion/plugin/command"
-	"github.com/johnstarich/bashtion/plugin/env"
 	"github.com/johnstarich/bashtion/plugin/logger"
 	"github.com/johnstarich/bashtion/plugin/namespace"
 	"github.com/johnstarich/bashtion/plugin/usage"
+	"github.com/johnstarich/goenable/env"
 )
 
 var (
@@ -19,8 +19,6 @@ var (
 		"logger":    &logger.Logger{},
 		"namespace": &namespace.Namespace{},
 	}
-
-	helpers func(helper string) (interface{}, bool)
 )
 
 // Usage returns the full set of documentation for this plugin
@@ -32,23 +30,7 @@ bashtion load ENV_VAR COMMAND
 }
 
 // Load runs any set up required by this plugin
-func Load(h func(string) (interface{}, bool)) error {
-	helpers = h
-	getenv, ok := helpers("Getenv")
-	if !ok {
-		return errors.New("Missing helper for Getenv")
-	}
-	env.Getenv = getenv.(func(string) string)
-	setenv, ok := helpers("Setenv")
-	if !ok {
-		return errors.New("Missing helper for Setenv")
-	}
-	env.Setenv = setenv.(func(string, string) error)
-	unsetenv, ok := helpers("Unsetenv")
-	if !ok {
-		return errors.New("Missing helper for Unsetenv")
-	}
-	env.Unsetenv = unsetenv.(func(string) error)
+func Load() error {
 	return nil
 }
 

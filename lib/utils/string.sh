@@ -84,3 +84,29 @@ function filter_not() {
         done
     }
 }
+
+function trim_prefix() {
+    local str=$1
+    local prefix=$2
+    printf '%s' "${str#$prefix}"
+}
+
+function trim_suffix() {
+    local str=$1
+    local suffix=$2
+    printf '%s' "${str%$suffix}"
+}
+
+function has_prefix() {
+    local str=$1
+    local prefix=$2
+    [[ "$str" == "$prefix"* ]]
+    return $?
+}
+
+function has_suffix() {
+    local str=$1
+    local suffix=$2
+    [[ "$str" == *"$suffix" ]]
+    return $?
+}
