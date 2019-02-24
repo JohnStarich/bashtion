@@ -1,17 +1,5 @@
 #!/usr/bin/env bash
 
-declare -Agr colors=(
-    [reset]=$'\e[0m'
-    [black]=$'\e[0;30m'
-    [blue]=$'\e[0;34m'
-    [green]=$'\e[0;32m'
-    [cyan]=$'\e[0;36m'
-    [red]=$'\e[0;31m'
-    [purple]=$'\e[0;35m'
-    [brown]=$'\e[0;33m'
-    [gray]=$'\e[0;37m'
-)
-
 declare -Agr bold_colors=(
     [gray]=$'\e[1;30m'
     [blue]=$'\e[1;34m'
@@ -32,6 +20,18 @@ declare -Agr background_colors=(
     [purple]=$'\e[0;45m'
     [cyan]=$'\e[0;46m'
     [white]=$'\e[0;47m'
+)
+
+declare -Agr colors=(
+    [black]=$'\e[0;30m'
+    [blue]=$'\e[0;34m'
+    [green]=$'\e[0;32m'
+    [cyan]=$'\e[0;36m'
+    [red]=$'\e[0;31m'
+    [purple]=$'\e[0;35m'
+    [brown]=$'\e[0;33m'
+    [gray]=$'\e[0;37m'
+    [reset]=$'\e[0m'
 )
 
 function color() {

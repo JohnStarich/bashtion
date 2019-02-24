@@ -20,6 +20,10 @@ const (
 	variablePrefixSeparator = "_"
 )
 
+var (
+	importCache = make(map[string]bool)
+)
+
 // Namespace is part of an import function that helps reduce global name collisions
 type Namespace struct {
 	command.Command
@@ -49,7 +53,7 @@ func (n *Namespace) Run(args []string) error {
 		return usage.Errorf(n.Usage())
 	}
 	outputEnvVar, fileName := args[0], args[1]
-	// ensure PATH is consistent
+	// ensure PATH is consistent with C.getenv before exec.LookPath
 	if err := env.Setenv("PATH", env.Getenv("PATH")); err != nil {
 		return err
 	}
@@ -74,6 +78,10 @@ func (n *Namespace) Run(args []string) error {
 
 	name := filepath.Base(fileName)
 	name = strings.TrimSuffix(name, filepath.Ext(name))
+	if importCache[name] {
+		return nil
+	}
+
 	parser := syntax.NewParser()
 	f, err := parser.Parse(reader, name)
 	if err != nil {
@@ -95,7 +103,10 @@ func (n *Namespace) Run(args []string) error {
 		}
 	}
 
-	env.Setenv(outputEnvVar, buf.String())
+	if err := env.Setenv(outputEnvVar, buf.String()); err != nil {
+		return err
+	}
+	importCache[name] = true
 	return nil
 }
 

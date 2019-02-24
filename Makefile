@@ -14,7 +14,7 @@ bashtion: out
 	go build -v -o out/bashtion -buildmode=plugin .
 
 .PHONY: plugin-test
-plugin-test: bashtion cache/goenable.so
+plugin-test: bashtion goenable
 	@set -ex; \
 		enable -f ./cache/goenable.so goenable; \
 		goenable load ./out/bashtion output; \
@@ -24,6 +24,17 @@ plugin-test: bashtion cache/goenable.so
 		namespace output ./lib/utils/colors.sh; \
 		eval "$$output"; \
 		colors color reset
+	@set -ex; \
+		source bashtion.sh; \
+		import colors
+	@set -ex; \
+		source bashtion.sh; \
+		function hey() { return 1; }; \
+		function hi() { hey; }; \
+		hi
+
+.PHONY: goenable
+goenable: cache/goenable-${GOENABLE_VERSION}.so
 
 .PHONY: dist
 dist: out
@@ -53,8 +64,8 @@ out:
 cache:
 	mkdir cache
 
-cache/goenable.so: cache
-	curl -fsSL "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-$$(uname -s)-$$(uname -m).so" > cache/goenable.so
+cache/goenable-${GOENABLE_VERSION}.so: cache
+	curl -fsSL -o cache/goenable-${GOENABLE_VERSION}.so "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-$$(uname -s)-$$(uname -m).so"
 
 .PHONY: clean
 clean:
