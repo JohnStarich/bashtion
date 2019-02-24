@@ -72,7 +72,7 @@ if [[ -z "$BASHTION" ]]; then
     declare -gr BASHTION_VERSION
 fi
 
-if [[ ! -f "$BASHTION" ]]; then
+if [[ ! -f "$BASHTION" && ! -L "$BASHTION" ]]; then
     echo "Error: \$BASHTION is not a file: $BASHTION"
     exit 2
 fi
