@@ -13,14 +13,17 @@ all: bashtion
 bashtion: out
 	go build -v -o out/bashtion -buildmode=plugin .
 
-.PHONY: plugins-test
-plugins-test: bashtion cache/goenable.so
+.PHONY: plugin-test
+plugin-test: bashtion cache/goenable.so
 	@set -ex; \
 		enable -f ./cache/goenable.so goenable; \
 		goenable load ./out/bashtion output; \
 		eval "$$output"; \
+		bashtion load output namespace; \
+		eval "$$output"; \
 		namespace output ./lib/utils/colors.sh; \
-		eval "$$output"
+		eval "$$output"; \
+		colors color reset
 
 .PHONY: dist
 dist: out
