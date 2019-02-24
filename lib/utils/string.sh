@@ -32,7 +32,7 @@ function pad() {
     printf "%${pad_size}s" ''
 }
 
-function nth_token() {
+function nth-token() {
     declare -i token_index=$1; shift
     {
         if [[ $# != 0 ]]; then
@@ -70,7 +70,7 @@ function filter() {
     }
 }
 
-function filter_not() {
+function filter-not() {
     local pattern=$1; shift
     {
         if [[ $# != 0 ]]; then
@@ -85,26 +85,26 @@ function filter_not() {
     }
 }
 
-function trim_prefix() {
+function trim-prefix() {
     local str=$1
     local prefix=$2
     printf '%s' "${str#$prefix}"
 }
 
-function trim_suffix() {
+function trim-suffix() {
     local str=$1
     local suffix=$2
     printf '%s' "${str%$suffix}"
 }
 
-function has_prefix() {
+function has-prefix() {
     local str=$1
     local prefix=$2
     [[ "$str" == "$prefix"* ]]
     return $?
 }
 
-function has_suffix() {
+function has-suffix() {
     local str=$1
     local suffix=$2
     [[ "$str" == *"$suffix" ]]
