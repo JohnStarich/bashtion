@@ -3,6 +3,19 @@ language: bash
 # Use container-based infrastructure for quicker build start-up
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - xz-utils
+
+install:
+  # source: https://github.com/koalaman/shellcheck#installing-the-shellcheck-binary
+  - export scversion="v0.6.0"
+  - wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-"${scversion}".linux.x86_64.tar.xz" | tar -xJv
+  - shellcheck_path=$(which shellcheck || echo /usr/bin)
+  - sudo cp shellcheck-"${scversion}"/shellcheck "$shellcheck_path"
+  - shellcheck --version
+
 script:
 - bash -c 'shopt -s globstar nullglob; shellcheck **/*.{sh,bash}'
 - ./test.sh
