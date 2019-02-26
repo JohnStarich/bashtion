@@ -9,6 +9,7 @@ services:
 addons:
   apt:
     packages:
+      - bash
       - xz-utils
 
 install:
