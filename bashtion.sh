@@ -81,18 +81,50 @@ goenable load "$BASHTION" output
 eval "${output}"
 unset output
 
-import() {
-    local output rc opts=${-//c}
-    set +ex
-    bashtion run namespace output "$@"
-    rc=$?
-    eval "$output"
-    set -"$opts"
-    return $rc
-}
-
 logger() {
     bashtion run logger "$@"
+}
+
+declare -ag __import_stack=()
+
+import() {
+    local output rc opts=${-//[cis]}
+    set +ex
+    __import_stack=("$*" "${__import_stack[@]}")
+    bashtion run namespace output "$@"
+    rc=$?
+    if [[ $rc == 0 && -n "${output:+x}" ]]; then
+        # Source the output to provide a usable stack for debugging
+        # shellcheck disable=SC1090
+        source <(echo "$output")
+        rc=$?
+    fi
+    if (( rc != 0 )); then
+        # Use a bit of logic from utils/exception to show the error and a small trace
+        logger error "Error during 'import $*'"
+        local padding previous_import next_import last_non_import
+        for (( frame=0; frame < ${#FUNCNAME[@]}; frame++ )); do
+            if [[ "${FUNCNAME[$frame]}" != import && "${BASH_SOURCE[$frame]}" != /dev/fd/* ]]; then
+                # TODO don't depend on /dev/fd prefix when skipping intermediate imports
+                last_non_import=${BASH_SOURCE[$frame]}
+                break
+            fi
+        done
+        declare -i import_frame=0
+        for (( frame=0; frame < ${#FUNCNAME[@]}; frame++ )); do
+            if [[ "${FUNCNAME[$frame]}" == import ]]; then
+                padding=$(printf "%$((import_frame * 2))s" '')
+                previous_import=${__import_stack[$import_frame]}
+                next_import=${__import_stack[$import_frame + 1]-$last_non_import}
+                logger error "${padding}"$'\e[1;31m'"» $next_import:${BASH_LINENO[$frame]}"$'\e[0m'" import $previous_import"
+                import_frame+=1
+            fi
+        done
+        exit 2
+    fi
+    __import_stack=("${__import_stack[@]:1}")
+    set -"$opts"
+    return $rc
 }
 
 declare -gr BASHTION_BOOTSTRAPPED=true

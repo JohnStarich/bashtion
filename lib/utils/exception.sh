@@ -5,7 +5,7 @@ import lib/utils/string
 
 
 declare -Arg trace_colors=(
-    [default]="${colors[reset]}"
+    [default]="${colors_colors[reset]}"
     [arrow]="$(colors bold_rgb 255 0 0)"
     [source]="$(colors bold)"
     [function]="$(colors rgb 32 179 142)"
@@ -14,11 +14,11 @@ declare -Arg trace_colors=(
 
 function init() {
     set -E
-    trap 'trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "${LINENO}"' ERR
+    trap 'exception-trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "${LINENO}"' ERR
     # Bash 4 has special behavior for the EXIT trap and resets LINENO to 1
     # Source: https://lists.gnu.org/archive/html/bug-bash/2010-09/msg00035.html
     # For now, just indicate it was triggered by an exit
-    trap 'if [[ $? != 0 ]]; then trace "${BASH_SOURCE[0]}" "${FUNCNAME[0]}" "(exit)"; fi' EXIT
+    trap 'if [[ $? != 0 ]]; then exception-trace "${BASH_SOURCE[0]-unknown}" "${FUNCNAME[0]-unknown}" "(exit)"; fi' EXIT
 }
 
 function _trace_frame() {

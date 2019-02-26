@@ -82,21 +82,25 @@ func (n *Namespace) Run(args []string) error {
 		return nil
 	}
 
-	parser := syntax.NewParser()
+	parser := syntax.NewParser(syntax.KeepComments)
 	f, err := parser.Parse(reader, name)
 	if err != nil {
 		return err
 	}
 
-	buf := bytes.NewBufferString("")
-	needsInit, err := mutate(buf, f, name)
+	extraFuncs := bytes.NewBufferString("")
+	needsInit, err := mutate(extraFuncs, f, name)
 	if err != nil {
 		return err
 	}
+
+	buf := bytes.NewBufferString("")
 	printer := syntax.NewPrinter()
 	if err := printer.Print(buf, f); err != nil {
 		return err
 	}
+
+	extraFuncs.WriteTo(buf)
 	if needsInit {
 		if _, err := buf.WriteString(name + functionPrefixSeparator + "init\n"); err != nil {
 			return err
@@ -115,6 +119,9 @@ func mutate(buf *bytes.Buffer, f *syntax.File, name string) (bool, error) {
 	globalVarNames := make(map[string]bool)
 	syntax.Walk(f, func(node syntax.Node) bool {
 		switch x := node.(type) {
+		case *syntax.File, *syntax.Stmt, *syntax.DeclClause:
+			// step into the file and it's top-level statements
+			return true
 		case *syntax.FuncDecl:
 			// find and prefix function names (replace function calls later)
 			functionNames[x.Name.Value] = true
@@ -126,11 +133,8 @@ func mutate(buf *bytes.Buffer, f *syntax.File, name string) (bool, error) {
 			} else {
 				globalVarNames[x.Name.Value] = true
 			}
-		case nil:
-			// stop processing after first level
-			return false
 		}
-		return true
+		return false
 	})
 
 	prefix := name + functionPrefixSeparator

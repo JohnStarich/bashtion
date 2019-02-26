@@ -6,11 +6,10 @@ set -euxo pipefail
 shopt -s globstar nullglob
 
 cd "$(dirname "$0")"
-output_file=./try-bashtion.sh
+output_file=./out/try-bashtion.sh
 
 BASHTION_CACHE=./cache
-BASHTION=./cache/bashtion
-ln -sf "$PWD/out/bashtion-$(uname -s)-$(uname -m)" "$BASHTION"
+BASHTION=./out/bashtion
 source bashtion.sh
 
 {
