@@ -6,19 +6,27 @@ go:
 services:
   - docker
 
+dist: xenial
+
 addons:
   apt:
     packages:
       - bash
+      - build-essential
       - xz-utils
+      - wget
 
 install:
+  # Shellcheck
   # source: https://github.com/koalaman/shellcheck#installing-the-shellcheck-binary
   - export scversion="v0.6.0"
   - wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-"${scversion}".linux.x86_64.tar.xz" | tar -xJv
   - shellcheck_path=$(which shellcheck || echo /usr/bin)
   - sudo cp shellcheck-"${scversion}"/shellcheck "$shellcheck_path"
   - shellcheck --version
+  # Bash
+  - wget -qO- http://ftpmirror.gnu.org/bash/bash-4.4.tar.gz | tar xzv
+  - sudo bash -c 'set -ex; cd bash-4.4; ./configure; make; make install; cd ..; rm -rf bash-4.4'
 
 script:
   - make lint test
