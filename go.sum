@@ -4,6 +4,8 @@ github.com/johnstarich/goenable v0.0.0-20190218035250-869e552878d6 h1:Wa+UcCigbr
 github.com/johnstarich/goenable v0.0.0-20190218035250-869e552878d6/go.mod h1:mLD4Y8lqS2Fok6+HrtDayU9r/UT5luA8LgaMgNYU6uQ=
 github.com/johnstarich/goenable v0.0.0-20190219082100-c8af47d0b383 h1:l49OrMCNll5XOx8vCP5kUGqgmqe6AnE1EB7yIe6i8qw=
 github.com/johnstarich/goenable v0.0.0-20190219082100-c8af47d0b383/go.mod h1:mLD4Y8lqS2Fok6+HrtDayU9r/UT5luA8LgaMgNYU6uQ=
+github.com/johnstarich/goenable v0.2.1 h1:xtid2ugjC3wPVyFac8eQ212lTGZMYv3ql3/AMzYz/P8=
+github.com/johnstarich/goenable v0.2.1/go.mod h1:mLD4Y8lqS2Fok6+HrtDayU9r/UT5luA8LgaMgNYU6uQ=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
