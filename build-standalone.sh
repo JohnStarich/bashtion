@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 output_file=./out/try-bashtion.sh
 
 BASHTION_CACHE=./cache
-BASHTION=./out/bashtion
+BASHTION=./out/bashtion.so
 source bashtion.sh
 
 {

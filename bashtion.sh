@@ -33,10 +33,13 @@ mkdir -p "$BASHTION_CACHE"
 
 # Ensure goenable is downloaded and enabled
 GOENABLE_VERSION=${GOENABLE_VERSION:-0.2.0}
-if [[ ! -f "${BASHTION_CACHE}"/goenable.so ]]; then
-    curl -fsSL -o "${BASHTION_CACHE}/goenable-${GOENABLE_VERSION}.so" "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-$(uname -s)-$(uname -m).so"
+os_arch="$(uname -s)-$(uname -m)"
+cache_loc="${BASHTION_CACHE}/goenable-${GOENABLE_VERSION}-${os_arch}.so"
+if [[ ! -f "$cache_loc" ]]; then
+    curl -fsSL -o "$cache_loc" "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-${os_arch}.so"
 fi
-enable -f "${BASHTION_CACHE}/goenable-${GOENABLE_VERSION}.so" goenable
+enable -f "$cache_loc" goenable
+unset os_arch cache_loc
 
 if [[ -z "$BASHTION" ]]; then
     # By default, find an existing install of Bashtion and download one if none are found.

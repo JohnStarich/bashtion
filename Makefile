@@ -1,17 +1,19 @@
 GO111MODULE := on
 CGO_ENABLED := 1
 export
-GOENABLE_VERSION := 0.2.0
+GOENABLE_VERSION := untagged-82eebf0d61329d0eca4a
 TARGETS := darwin/amd64,linux/amd64
 GO_VERSION := 1.11.5
 SHELL := /usr/bin/env bash
+CURRENT_DIST := $(shell uname -s)-$(shell uname -m)
 
 .PHONY: all
 all: bashtion
 
 .PHONY: bashtion
 bashtion: out
-	go build -v -o out/bashtion -buildmode=plugin .
+	go build -v -i -o out/bashtion-${CURRENT_DIST} -buildmode=plugin .
+	ln -sf bashtion-${CURRENT_DIST} ./out/bashtion.so
 
 .PHONY: lint
 lint:
@@ -23,15 +25,15 @@ test: test-bashtion test-try-bashtion
 
 .PHONY: test-bashtion
 test-bashtion: goenable bashtion
-	@set -e; \
-		BASHTION=./out/bashtion; \
+	@set -ex; \
+		BASHTION=./out/bashtion.so; \
 		BASHTION_CACHE=./cache; \
 		source ./bashtion.sh; \
 		source test.sh
 
 .PHONY: test-try-bashtion
 test-try-bashtion: try-bashtion
-	BASHTION=./out/bashtion; \
+	BASHTION=./out/bashtion.so; \
 		source out/try-bashtion.sh
 
 .PHONY: try-bashtion
@@ -43,7 +45,7 @@ dist: dist-try-bashtion dist-bashtion
 
 .PHONY: dist-try-bashtion
 dist-try-bashtion: try-bashtion
-	rm out/bashtion
+	rm out/bashtion-${CURRENT_DIST}
 
 .PHONY: dist-bashtion
 dist-bashtion: out
@@ -74,10 +76,10 @@ cache:
 	mkdir cache
 
 .PHONY: goenable
-goenable: cache/goenable-${GOENABLE_VERSION}.so
+goenable: cache/goenable-${GOENABLE_VERSION}-${CURRENT_DIST}.so
 
-cache/goenable-${GOENABLE_VERSION}.so: cache
-	curl -fsSL -o cache/goenable-${GOENABLE_VERSION}.so "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-$$(uname -s)-$$(uname -m).so"
+cache/goenable-${GOENABLE_VERSION}-${CURRENT_DIST}.so: cache
+	curl -fsSL -o cache/goenable-${GOENABLE_VERSION}-${CURRENT_DIST}.so "https://github.com/JohnStarich/goenable/releases/download/${GOENABLE_VERSION}/goenable-${CURRENT_DIST}.so"
 
 .PHONY: clean
 clean:
@@ -87,8 +89,8 @@ clean:
 .PHONY: plugin-test
 plugin-test: bashtion goenable
 	@set -ex; \
-		enable -f ./cache/goenable.so goenable; \
-		goenable load ./out/bashtion output; \
+		enable -f ./cache/goenable-${GOENABLE_VERSION}-${CURRENT_DIST}.so goenable; \
+		goenable load ./out/bashtion-${CURRENT_DIST} output; \
 		eval "$$output"; \
 		bashtion load output namespace; \
 		eval "$$output"; \
@@ -103,4 +105,3 @@ plugin-test: bashtion goenable
 		function hey() { return 1; }; \
 		function hi() { hey; }; \
 		hi
-
