@@ -20,7 +20,7 @@ This framework is still under development, so if you have any suggestions, feel 
 Run the following command in your shell to try it out.
 
 ```bash
-source <(curl -fsSL -H 'Accept: Accept: application/vnd.github.v3+json' https://api.github.com/repos/JohnStarich/bashtion/releases/latest | grep browser_download_url | cut -d '"' -f 4 | xargs curl -fsSL)
+source <(curl -fsSL -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/JohnStarich/bashtion/releases/latest | grep browser_download_url | cut -d '"' -f 4 | xargs curl -fsSL)
 ```
 
 The above script checks for the latest stable release and then sources it. Please note that try-bashtion.sh is not recommended for production builds.
